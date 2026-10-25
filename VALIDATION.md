@@ -1,10 +1,21 @@
-# 0.3.0 creative-node alpha validation
+# 0.3.1 configuration preflight and creative-node alpha validation
 
 Checked on Windows, 25 October 2026.
 
+## 0.3.1 reported-error regression
+
+- Reproduced the reported Seedance setup: generate, paid permission true, credit
+  ceiling 0 and a connected image with uploads disabled.
+- Actual Comfy queue validation now rejects that setup before execution and
+  combines the budget and upload requirements in its response.
+- Verified that ordinary model enum validation and IMAGE/MASK link-type checks
+  still reject invalid inputs. Local prepare with a native image still succeeds.
+- The update chooses no credit limit, changes no workflow permissions, and makes
+  no paid submissions or reference uploads during validation.
+
 ## Verified offline
 
-- 174 Python tests: 173 passed and one Unix-only permission test skipped in the
+- 183 Python tests: 182 passed and one Unix-only permission test skipped in the
   Comfy Python environment. Torch-dependent checks skip when Torch is absent in CI.
 - 23 JavaScript tests passed, including switching every bundled family/profile,
   enum/range updates, whole-number rendering, hidden seed controls and connection retention.

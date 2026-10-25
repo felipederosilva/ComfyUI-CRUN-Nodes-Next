@@ -17,8 +17,10 @@ from typing import Any
 
 if __package__:
     from .crun.effects import normalize_catalog
+    from .crun.preflight import validate_node_inputs
 else:
     from crun.effects import normalize_catalog
+    from crun.preflight import validate_node_inputs
 
 
 ROOT = Path(__file__).resolve().parent
@@ -373,6 +375,7 @@ def make_node(entry: dict) -> type:
         "CATEGORY": category, "FUNCTION": "execute", "RETURN_TYPES": ("STRING", "STRING", "FLOAT"),
         "RETURN_NAMES": ("result_json", "task_id", "credits"), "DESCRIPTION": description,
         "OUTPUT_NODE": True, "INPUT_TYPES": input_types, "execute": execute,
+        "VALIDATE_INPUTS": classmethod(validate_node_inputs),
         "CRUN_ENTRY": frozen,
     })
 

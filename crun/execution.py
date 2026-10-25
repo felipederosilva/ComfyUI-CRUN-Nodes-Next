@@ -19,6 +19,7 @@ from typing import Any
 
 from .client import CRUNClient, CRUNError
 from .settings import settings_path
+from .preflight import configuration_errors
 
 _LOCK = threading.RLock()
 
@@ -214,13 +215,9 @@ def run_entry(entry: dict, inputs: dict, mode: str, allow_paid_generation: bool 
     supported = entry.get("method", "POST").upper() == "POST" and entry.get("endpoint") == "/api/v1/client/job/CreateTask" and isinstance(payload.get("input"), dict) and isinstance(payload.get("model"), str)
     if not supported or entry.get("generation_supported") is False:
         raise ValueError("This operation has a dedicated protocol. It is available for preparation, not execution in this release.")
-    if mode == "generate":
-        if allow_paid_generation is not True:
-            raise ValueError("Paid generation is not armed. Enable it explicitly after reviewing the inputs.")
-        if isinstance(max_credits, bool) or not isinstance(max_credits, (int, float)) or not math.isfinite(max_credits) or max_credits <= 0:
-            raise ValueError("Set a positive estimated-credit ceiling before generating.")
-    if encoded_media and allow_upload is not True:
-        raise ValueError("This request contains connected images. Enable crun_allow_upload to send those references to CRUN for an estimate or generation. Prepare never uploads.")
+    missing = configuration_errors(mode, allow_paid_generation, max_credits, allow_upload=allow_upload, has_native_media=bool(encoded_media))
+    if missing:
+        raise ValueError("CRUN setup incomplete: " + " ".join(missing) + " No CRUN request was made.")
     client = CRUNClient()
     if encoded_media:
         from .media import upload_pngs

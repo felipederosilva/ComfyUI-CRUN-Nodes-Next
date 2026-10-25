@@ -5,7 +5,7 @@ lessons of [KIE Nodes Next](https://github.com/felipederosilva/ComfyUI-KIE-Nodes
 with separate code, credentials, node IDs and installation. Not affiliated with
 or endorsed by CRUN or Comfy Org.
 
-## 0.3.0 — native references and model-family workflows
+## 0.3.1 — native references, model-family workflows and configuration preflight
 
 Connect **Load Image** to **Seedance — Image to Video**, choose a version from
 its model dropdown, and work with that version's supported controls. CRUN Next
@@ -45,6 +45,13 @@ connections; advanced nested media and VIDEO/AUDIO input uploads remain pending.
 ![Seedance family dropdown with native image and video-result connections](docs/screenshots/studio.png)
 
 ## Install or update
+
+Version 0.3.1 adds queue-time configuration checks. A zero `crun_max_credits`
+blocks paid generation; it never means unlimited spending. If a connected image
+needs to be sent to CRUN, `crun_allow_upload` must also be enabled explicitly.
+Use `crun_mode=estimate` with upload permission to obtain a quote, then choose
+your own positive credit limit before using generate. No budget or permission
+is automatically enabled by the update.
 
 Use the backend ComfyUI folder containing `main.py` and `custom_nodes`, not the
 Desktop program/resources directory. Obtain source from this repository or an

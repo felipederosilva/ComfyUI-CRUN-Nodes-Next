@@ -307,6 +307,7 @@ def make_family_node(family: dict) -> type:
         "RETURN_NAMES": ("result_json", "task_id", "credits"), "OUTPUT_NODE": True,
         "DESCRIPTION": title + ". Select a version; only that model's documented controls apply. Native image references are uploaded only with explicit permission. Preparation stays offline.",
         "INPUT_TYPES": input_types, "execute": execute, "CRUN_FAMILY": deepcopy(family),
+        "VALIDATE_INPUTS": classmethod(generated.validate_node_inputs),
         "CRUN_PROFILES": deepcopy(profiles),
     })
 
