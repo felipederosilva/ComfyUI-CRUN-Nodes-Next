@@ -1,46 +1,72 @@
-# 0.1.0 alpha validation
+# 0.2.0 catalog alpha validation
 
 Checked on Windows, 2026-10-25.
 
 ## Verified
 
-- 63 offline Python tests: 62 passed, one Unix-only permission test skipped.
-- 7 offline JavaScript DOM/helper tests passed.
-- Fake-key Windows DPAPI round trip; plaintext absent from persisted ciphertext.
-- Local HTTP boundary tests: nonce, cross-origin, remote peer/Host, oversized JSON,
-  generic errors and credential-free status responses.
-- Mocked provider contracts: balance, task inspection, provider-specific catalogs
-  and non-generating credit estimates; no paid task submission interface exists.
-- Model/task absence is not represented as a successful zero-cost response.
+- 123 offline Python tests: 122 passed, one Unix-only permission test skipped.
+- 11 JavaScript tests and frontend syntax check passed.
+- Every one of 1,337 generated node classes executed its default preparation
+  locally while provider network requests were blocked: no network calls.
+- 1,337 flat Comfy workflow templates map to every bundled catalog entry and
+  unique Effect; all start with prepare / paid permission false / credit ceiling 0.
+- Manifest maps all 1,088 Effects source records to 1,063 unique template recipes.
+  Repeated Vidu categories are preserved as metadata, not invented execution variants.
+- Model-specific required fields, enum choices, JSON arrays/objects, numeric bounds,
+  URL checks and text patterns; unsupported protocols remain preparation-only.
+- Windows DPAPI fake-key round trip and fresh settings-module load preserve the
+  credential; safe connection/balance receipts persist separately. A changed key
+  invalidates the old receipt. No plaintext key is stored in frontend settings.
+- Local HTTP nonce, same-origin/loopback boundary, bounded JSON, sanitized errors
+  and credential-free status responses.
+- Mocked paid-submission gate requires permission and positive budget, checks
+  estimate and balance, preserves task IDs and never retries. Ambiguous transport
+  and 5xx responses instruct recovery from CRUN Logs. Invalid journals block submission.
 
 ## Actual ComfyUI checks
 
-- Started ComfyUI 0.42.5 / frontend 1.55.18 in an isolated CPU-only profile.
-- Seven CRUN nodes registered successfully; no KIE package loaded or modified.
-- Browser checked: launcher, Connection panel, Settings category/action, Effects
-  provider selector, and nine planned AI Tools cards. No provider request needed.
-- Source ZIP CRC verified; runtime package is built from an explicit allowlist.
-- First-install helper tested against a temporary Comfy fixture; rejects an
-  existing destination and a directory that is not a backend Comfy installation.
+- Isolated CPU-only ComfyUI 0.42.5 / frontend 1.55.18 starts successfully.
+- Comfy's object-info API registers 1,344 CRUN nodes: 1,337 catalog nodes plus
+  seven setup utilities. Workflow-template index exposes all 1,337 JSON recipes.
+- A video model, a fixed Effect and an AI Tool completed preparation through
+  Comfy's actual execution queue without provider calls or paid generation.
+- Browser checked: native Settings > CRUN Next custom rows, save with an isolated
+  fake key, empty password field after save, masked saved state after reopening
+  Settings, launcher, model-library counts, filtering and schema inspection.
+- The unsaved test graph was preserved; browser reload was not used as a storage
+  test. Fresh-module tests verify persistence independently of the open page.
 
-## Publication and installation
+## Read-only live CRUN checks
 
-- First-installed 23 allowlisted files into the actual Comfy Desktop custom_nodes
-  directory under a new ComfyUI-CRUN-Nodes-Next folder; no KIE files changed.
-- GitHub offline CI passed on Ubuntu and Windows for initial code commit 54b5b16:
-  https://github.com/felipederosilva/ComfyUI-CRUN-Nodes-Next/actions/runs/40228027516
-- Runtime ZIP also includes the two original workspace screenshots; no API key,
-  config file, cache, existing user data or Git history is distributed.
+- Existing saved key accepted by the documented balance endpoint.
+- Authenticated LLM inventory returned 55 IDs. The union with documentation is
+  64 LLM definitions; nine documentation-only IDs remain explicitly labeled.
+- Public schema discovery plus the live LLM inventory yields 274 catalog entries,
+  273 wire model IDs, 21 providers and zero unresolved definitions in this snapshot.
+- Complete paginated Effects discovery: Kling 226, ByteDance 341, Vidu 496 unique
+  template IDs (521 Vidu source rows). No key, balance or account identifiers are
+  bundled in catalog or workflow metadata.
 
-## Not checked / deliberately not implemented
+## Not checked / not implemented
 
-- Real CRUN account authentication, balances, estimates, entitlement and current
-  Effects catalog response shapes (especially Vidu).
-- CRUN generation/upload/media round trip; none exists in this alpha.
-- AI Tools execution and full-model node coverage.
-- Multi-user, LAN or publicly exposed Comfy servers; this alpha is loopback-only.
-- Other operating systems in an interactive Comfy installation.
+- No actual paid generation, cost estimate, upload or provider-media round trip
+  was performed. Mocked submission success is not live generation evidence.
+- Native IMAGE / MASK / VIDEO / AUDIO uploads, decoded media outputs, automatic
+  task polling, result downloads and cancellation are not implemented.
+- LLM and non-CreateTask dedicated protocols are preparation-only.
+- Complex prose-only conditions and template reference meanings still require
+  review of each provider's instructions; catalog presence is not entitlement.
+- Interactive Comfy on other operating systems, shared/LAN/public servers and
+  Comfy Registry publication have not been validated for this release.
 
-Fake responses and a fake credential are test fixtures, never evidence of live
-CRUN success. No authenticated CRUN call, upload or paid generation was made
-while preparing this skeleton.
+## Local installation
+
+- Updated 1,366 allowlisted files in the actual Comfy Desktop CRUN extension.
+- Overwritten files were backed up outside custom_nodes. Credential-file hash
+  and every existing KIE extension file were verified unchanged.
+- Fresh installed-package import confirms version 0.2.0, 1,344 registered nodes,
+  saved key present and historical connected status. Sora entries register as Video.
+
+The runtime ZIP uses an explicit file allowlist and CRC/SHA256 verification.
+Credentials, user caches, task journals and Git history are excluded. Publication
+receipts are reported separately after those operations complete.

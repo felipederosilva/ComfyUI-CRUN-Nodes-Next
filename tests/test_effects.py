@@ -31,6 +31,20 @@ class CatalogTests(unittest.TestCase):
         self.assertEqual(card["id"], "sample")
         self.assertIsNone(card["required_images"])
 
+    def test_vidu_duplicates_preserve_each_catalog_appearance(self):
+        first = {"template": "fairy", "name": "Fairy", "category_name": "Festival", "credits": 24, "video": "https://cdn.example.com/fairy.mp4"}
+        second = {**first, "category_name": "Transformation"}
+        cards = normalize_catalog("vidu", {"templates": [first, second]})
+        self.assertEqual(len(cards), 1)
+        self.assertEqual(cards[0]["category"], "Festival")
+        self.assertEqual(cards[0]["preview_url"], first["video"])
+        self.assertEqual(len(cards[0]["raw"]["catalog_variants"]), 2)
+        self.assertNotIn("catalog_variants", first)
+
+    def test_vidu_differing_variant_cost_remains_unknown(self):
+        cards = normalize_catalog("vidu", [{"template": "same", "credits": 10}, {"template": "same", "credits": 20}])
+        self.assertIsNone(cards[0]["credits"])
+
     def test_empty_and_duplicate_entries(self):
         self.assertEqual(normalize_catalog("kling", {"templates": []}), [])
         cards = normalize_catalog("kling", {"templates": [{}, None, {"key": "a"}, {"key": "a", "name": "dup"}]})

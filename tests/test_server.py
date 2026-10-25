@@ -77,12 +77,28 @@ class BridgeTests(unittest.IsolatedAsyncioTestCase):
             response = await self.client.post("/crun-next/connection", json={}, headers=self.headers())
         self.assertEqual((await response.json())["balance"], 123.5)
 
-    async def test_tools_are_local_and_planned(self):
+    async def test_tools_are_local_and_available_in_nodes_menu(self):
         with patch.object(server, "CRUNClient", side_effect=AssertionError("No remote requests")):
             response = await self.client.get("/crun-next/tools", headers=self.headers())
             payload = await response.json()
         self.assertTrue(payload["tools"])
-        self.assertTrue(all(tool["status"] == "planned" for tool in payload["tools"]))
+        self.assertTrue(all(tool["status"] == "node_available" for tool in payload["tools"]))
+        self.assertTrue(all(tool["default_mode"] == "prepare" for tool in payload["tools"]))
+
+    async def test_models_load_locally_without_provider_requests(self):
+        with patch.object(server, "CRUNClient", side_effect=AssertionError("No remote requests")):
+            response = await self.client.get("/crun-next/models", headers=self.headers())
+            payload = await response.json()
+        self.assertEqual(response.status, 200)
+        self.assertGreaterEqual(payload["summary"]["entry_count"], 274)
+
+    async def test_refresh_is_explicit_and_restart_is_reported(self):
+        snapshot = {"entries": [], "summary": {"entry_count": 0}}
+        with patch.object(server, "refresh_catalog", return_value=snapshot) as refresh:
+            response = await self.client.post("/crun-next/models/refresh", json={}, headers=self.headers())
+            payload = await response.json()
+        refresh.assert_called_once()
+        self.assertTrue(payload["restart_required"])
 
     async def test_effects_fetch_provider_specific_catalog(self):
         with patch.object(server, "CRUNClient") as client:

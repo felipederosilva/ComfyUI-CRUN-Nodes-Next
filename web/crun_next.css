@@ -72,6 +72,15 @@
 .crun-footer { display: flex; justify-content: space-between; gap: 12px; padding: 14px 30px; border-top: 1px solid var(--crun-border); color: var(--crun-muted); font-size: 11px; }
 .crun-launcher { position: fixed; right: 16px; bottom: 16px; z-index: 100; border: 1px solid #91bc66; background: #17231cf2; color: #d7f9b9; border-radius: 8px; padding: 7px 11px; font: 650 11px "Segoe UI", system-ui, sans-serif; letter-spacing: .02em; cursor: pointer; }
 .crun-launcher:focus-visible { outline: 2px solid #b9f17b; outline-offset: 3px; }
+.crun-model-details { margin-top: 20px; }
+.crun-settings-row { --crun-text: #edf4f6; --crun-accent: #b9f17b; color: var(--crun-text); min-width: 240px; max-width: 640px; font: 13px/1.45 "Segoe UI", system-ui, sans-serif; }
+.crun-settings-text { margin: 0 0 8px; overflow-wrap: anywhere; }
+.crun-settings-controls { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.crun-settings-controls .crun-input { flex: 1; min-width: 200px; }
+.crun-settings-message { color: #c4dfb0; margin: 8px 0 0; }
+.crun-settings-row .crun-input { box-sizing: border-box; padding: 9px 10px; color: #edf4f6; background: #141c21; border: 1px solid #51646e; border-radius: 6px; font: inherit; }
+.crun-settings-row .crun-button { color: #edf4f6; background: #23313a; border: 1px solid #52646e; border-radius: 6px; padding: 8px 11px; cursor: pointer; }
+.crun-settings-row .crun-button-primary { background: #b9f17b; color: #17220f; border-color: #b9f17b; }
 @media (max-width: 700px) {
     .crun-workspace { width: calc(100vw - 16px); max-height: calc(100dvh - 16px); border-radius: 12px; }
     .crun-header, .crun-content { padding: 20px 16px; }

@@ -1,4 +1,4 @@
-"""Minimal non-generating CRUN API client for the 0.1.0 connection skeleton.
+"""Fixed-contract CRUN client with read-only discovery and single submission.
 
 Only fixed documented endpoints are exposed. Requests never follow redirects,
 retry automatically, or print provider response bodies containing private data.
@@ -6,6 +6,7 @@ retry automatically, or print provider response bodies containing private data.
 from __future__ import annotations
 
 import math
+import json
 import re
 from typing import Any
 
@@ -37,7 +38,7 @@ def _credit_number(value: Any) -> float:
 
 
 class CRUNClient:
-    """Credentialed reads and the documented non-generating estimate endpoint."""
+    """Credentialed reads, estimates and explicitly gated task submission."""
 
     def __init__(self, api_key: str | None = None, session: Any = None):
         try:
@@ -104,12 +105,30 @@ class CRUNClient:
     def list_effects(self, provider: str) -> dict[str, Any]:
         if provider not in _EFFECT_PATHS:
             raise CRUNError("Choose a supported Effects provider: kling, bytedance or vidu.")
-        data = self._request("GET", "/api/v1/client/job/" + _EFFECT_PATHS[provider])
-        if isinstance(data, list):
-            return {"templates": data, "total": len(data)}
-        if not isinstance(data, dict):
-            raise CRUNError("CRUN returned an invalid Effects catalog.")
-        return data
+        rows, signatures, total = [], set(), None
+        for page in range(1, 101):
+            data = self._request("GET", "/api/v1/client/job/" + _EFFECT_PATHS[provider], params={"page": page, "page_size": 50})
+            if isinstance(data, list) and page == 1:
+                return {"templates": data, "total": len(data)}
+            if not isinstance(data, dict) or not isinstance(data.get("templates"), list):
+                raise CRUNError("CRUN returned an invalid Effects catalog.")
+            reported = data.get("total")
+            if reported is None and page == 1:
+                return data  # Older unpaginated contracts.
+            if isinstance(reported, bool) or not isinstance(reported, int) or not 0 <= reported <= 5000 or (total is not None and total != reported):
+                raise CRUNError("Effects catalog totals changed or exceeded the supported limit. Refresh explicitly.")
+            total = reported
+            batch = data["templates"]
+            signature = json.dumps(batch, sort_keys=True)
+            if signature in signatures and batch:
+                raise CRUNError("Effects catalog repeated a page. No incomplete catalog was returned.")
+            signatures.add(signature)
+            rows.extend(batch)
+            if len(rows) == total:
+                return {"templates": rows, "total": total}
+            if not batch or len(rows) > total:
+                raise CRUNError("Effects catalog pagination was incomplete or inconsistent.")
+        raise CRUNError("Effects catalog exceeds the supported page limit.")
 
     def estimate_credits(self, model: str, input_payload: dict[str, Any]) -> dict[str, Any]:
         if not isinstance(model, str) or not model.strip() or len(model) > 256 or any(ord(c) < 32 for c in model):
@@ -120,3 +139,37 @@ class CRUNClient:
         if not isinstance(data, dict) or not isinstance(data.get("estimated"), bool):
             raise CRUNError("CRUN returned an invalid credit estimate.")
         return {"credits": _credit_number(data.get("credits")), "estimated": data["estimated"]}
+
+    def list_models(self) -> dict[str, Any]:
+        """Read CRUN's documented OpenAI-format live LLM inventory, without tasks."""
+        try:
+            response = self.session.request("GET", API_BASE + "/api/v1/models", headers={"x-api-key": self._api_key, "Accept": "application/json"}, timeout=(10, 60), allow_redirects=False)
+        except requests.RequestException:
+            raise CRUNError("Could not read CRUN's live model inventory.") from None
+        if response.status_code != 200:
+            raise CRUNError("CRUN rejected the live model inventory request.", status=response.status_code)
+        try:
+            payload = response.json()
+        except (ValueError, TypeError):
+            raise CRUNError("CRUN returned invalid model inventory JSON.") from None
+        if not isinstance(payload, dict) or not isinstance(payload.get("data"), list):
+            raise CRUNError("CRUN returned an unsupported live model inventory shape.")
+        return payload
+
+    def create_task(self, model: str, input_payload: dict[str, Any]) -> str:
+        """Paid submission, called only by the explicitly armed execution gate.
+
+        Transport deliberately never retries. A network timeout has an ambiguous
+        outcome; inspect CRUN's task logs before trying another submission.
+        """
+        if not isinstance(model, str) or not model.strip() or not isinstance(input_payload, dict):
+            raise CRUNError("A documented model and input object are required.")
+        try:
+            data = self._request("POST", "/api/v1/client/job/CreateTask", payload={"model": model, "input": input_payload})
+        except CRUNError as exc:
+            if (exc.status is None and exc.code is None) or (exc.status is not None and exc.status >= 500) or (exc.code is not None and exc.code >= 500):
+                raise CRUNError("Submission outcome is unknown. Do not resubmit automatically; inspect CRUN Logs first.") from None
+            raise
+        if not isinstance(data, dict) or not isinstance(data.get("task_id"), str) or not data["task_id"].strip():
+            raise CRUNError("CRUN did not return a task ID. Check CRUN Logs before submitting again.")
+        return data["task_id"]

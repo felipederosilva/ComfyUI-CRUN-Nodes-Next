@@ -15,6 +15,7 @@ from . import settings
 from .client import CRUNClient, CRUNError
 from .effects import normalize_catalog
 from .tools import list_tools
+from .catalog import list_catalog, refresh_catalog, merge_live_models, parse_live_llm_models, save_catalog, CatalogError
 from .version import VERSION
 
 _NONCE = secrets.token_urlsafe(32)
@@ -82,6 +83,8 @@ def _route(handler):
         except CRUNError as exc:
             # CRUNError messages are sanitized in the provider client.
             return _json({"ok": False, "error": str(exc)}, status=502)
+        except CatalogError:
+            return _json({"ok": False, "error": "Catalog refresh failed. The previous catalog is kept; check the documentation service and retry."}, status=502)
         except Exception:
             return _json({"ok": False, "error": "CRUN Next could not complete this action. Check local storage and connection."}, status=500)
 
@@ -111,7 +114,12 @@ async def clear_credentials(request):
 
 @_route
 async def connection(request):
-    balance = await asyncio.to_thread(lambda: CRUNClient().get_balance())
+    try:
+        balance = await asyncio.to_thread(lambda: CRUNClient().get_balance())
+    except CRUNError as exc:
+        await asyncio.to_thread(settings.record_connection, "invalid" if exc.code in {401, 403} or exc.status in {401, 403} else "unreachable")
+        raise
+    await asyncio.to_thread(settings.record_connection, "connected", balance)
     print(f"[CRUN Next] Account balance: {balance:g} CRUN credits (live check)")
     return _json({"ok": True, "balance": balance, "checked_at": int(time.time())})
 
@@ -132,6 +140,24 @@ async def tools(request):
     return _json({"ok": True, "tools": list_tools()})
 
 
+@_route
+async def models(request):
+    return _json({"ok": True, **list_catalog()})
+
+
+@_route
+async def refresh_models(request):
+    snapshot = await asyncio.to_thread(refresh_catalog)
+    if settings.public_status().get("configured"):
+        try:
+            live = await asyncio.to_thread(lambda: CRUNClient().list_models())
+            snapshot = merge_live_models(snapshot, parse_live_llm_models(live))
+            await asyncio.to_thread(save_catalog, snapshot)
+        except (CRUNError, CatalogError):
+            snapshot.setdefault("warnings", []).append("Public definitions refreshed; live LLM availability could not be checked. No generation was submitted.")
+    return _json({"ok": True, **snapshot, "restart_required": True})
+
+
 def register_routes(routes):
     """Register once per route table; do not open a second HTTP server."""
     if getattr(routes, "_crun_next_registered", False):
@@ -143,6 +169,8 @@ def register_routes(routes):
         ("post", "/crun-next/connection", connection),
         ("post", "/crun-next/effects/catalog", effects_catalog),
         ("get", "/crun-next/tools", tools),
+        ("get", "/crun-next/models", models),
+        ("post", "/crun-next/models/refresh", refresh_models),
     ]:
         getattr(routes, method)(path)(handler)
     routes._crun_next_registered = True

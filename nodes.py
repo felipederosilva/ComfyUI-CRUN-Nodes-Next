@@ -1,4 +1,4 @@
-"""Small explicit setup nodes. This release cannot submit paid generations."""
+"""Setup utilities and offline registration of schema-aware CRUN nodes."""
 
 from __future__ import annotations
 
@@ -137,12 +137,12 @@ class CRUNPrepareEffectPlan:
 class CRUNToolsCatalog(CRUNConnectionStatus):
     CATEGORY = "CRUN Next/AI Tools"
     RETURN_TYPES = ("STRING",)
-    RETURN_NAMES = ("planned_tools_json",)
-    DESCRIPTION = "List researched CRUN AI Tools and documentation. These are roadmap entries, not executable tools in 0.1.0."
+    RETURN_NAMES = ("tools_json",)
+    DESCRIPTION = "List catalog-backed CRUN AI Tools and documentation. Individual Tools nodes are in the Nodes menu, defaulting to offline preparation."
 
     def check(self):
         data = list_tools()
-        return {"ui": {"text": [f"{len(data)} researched AI Tools. Execution is planned, not enabled."]}, "result": (_json(data),)}
+        return {"ui": {"text": [f"{len(data)} catalog-backed AI Tools. Find individual options under CRUN Next / AI Tools; workflows start in prepare mode."]}, "result": (_json(data),)}
 
 
 NODE_CLASS_MAPPINGS = {
@@ -162,5 +162,11 @@ NODE_DISPLAY_NAME_MAPPINGS = {
     "CRUN_Next_Estimate_Credits": "CRUN • Estimate Credits (No Generation)",
     "CRUN_Next_Inspect_Task": "CRUN • Inspect Existing Task",
     "CRUN_Next_Prepare_Effect_Plan": "CRUN • Prepare Effect Plan (Draft)",
-    "CRUN_Next_AI_Tools_Catalog": "CRUN • AI Tools Roadmap",
+    "CRUN_Next_AI_Tools_Catalog": "CRUN • AI Tools Catalog",
 }
+
+# Bundled/cached metadata only. Node registration must never contact CRUN.
+from .generated_nodes import generated_mappings
+_generated_classes, _generated_names = generated_mappings()
+NODE_CLASS_MAPPINGS.update(_generated_classes)
+NODE_DISPLAY_NAME_MAPPINGS.update(_generated_names)

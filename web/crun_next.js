@@ -5,6 +5,74 @@ const ROOT = "/crun-next";
 const OPEN_SETTING = "CRUNNext.Workspace.Open";
 const PROVIDERS = ["kling", "bytedance", "vidu"];
 let workspace = null;
+let latestStatus = null;
+let localNonce = "";
+const settingsViews = new Map();
+
+export function connectionText(status) {
+    if (!status?.configured) return "No API key saved";
+    const state = status.validation_state || "saved";
+    const checked = status.checked_at ? ` · last check ${new Date(status.checked_at * 1000).toLocaleString()}` : " · not checked";
+    const labels = { connected: "Previously verified", invalid: "Saved key rejected", unreachable: "Key saved · provider unreachable", error: "Key saved · check failed", saved: "Key saved" };
+    return `${labels[state] || "Key saved"}${checked}`;
+}
+
+export function modelAvailabilityText(entry, checkedAt = null) {
+    let label;
+    if (entry.availability === "listed_in_authenticated_llm_catalog") {
+        label = "Listed in last authenticated LLM inventory · execution not tested";
+    } else if (entry.availability === "not_listed_in_current_llm_catalog") {
+        label = "Not listed in last authenticated LLM inventory · not an execution failure";
+    } else {
+        return "Documentation only · account availability not verified";
+    }
+    if (checkedAt) {
+        const date = new Date(typeof checkedAt === "number" ? checkedAt * 1000 : checkedAt);
+        if (!Number.isNaN(date.getTime())) label += ` · checked ${date.toLocaleString()}`;
+    }
+    return label;
+}
+
+function applyLocalStatus(status) {
+    latestStatus = status;
+    if (status.nonce) localNonce = status.nonce;
+    for (const refresh of settingsViews.values()) refresh(status);
+}
+
+async function localApiRequest(path, { method = "GET", body, useNonce = true, signal } = {}) {
+    if (useNonce && !localNonce) await readPublicStatus(signal);
+    const headers = { Accept: "application/json" };
+    if (useNonce) headers["X-CRUN-Nonce"] = localNonce;
+    if (body !== undefined) headers["Content-Type"] = "application/json";
+    let response;
+    try {
+        response = await api.fetchApi(`${ROOT}${path}`, {
+            method, headers, body: body === undefined ? undefined : JSON.stringify(body),
+            cache: "no-store", signal,
+        });
+    } catch (error) {
+        if (error?.name === "AbortError") throw error;
+        throw new Error("Cannot reach the local CRUN Next extension. Check installation and restart ComfyUI.");
+    }
+    let payload;
+    try { payload = await response.json(); }
+    catch { throw new Error("The local CRUN Next extension returned an unreadable response."); }
+    if (!response.ok || !payload.ok) {
+        throw new Error(typeof payload.error === "string" ? payload.error.slice(0, 400) : "The operation could not be completed.");
+    }
+    return payload;
+}
+
+async function readPublicStatus(signal) {
+    const status = await localApiRequest("/status", { useNonce: false, signal });
+    applyLocalStatus(status);
+    return status;
+}
+
+async function checkSavedConnection() {
+    try { return await localApiRequest("/connection", { method: "POST", body: {} }); }
+    finally { await readPublicStatus().catch(() => {}); }
+}
 
 export function formatCredits(value) {
     if ((typeof value !== "number" && typeof value !== "string") || value === "") return "Not available";
@@ -48,7 +116,8 @@ export function effectPlan(card) {
         name: String(card.name || card.id),
         required_images: Number.isInteger(card.required_images) ? card.required_images : null,
         inputs: { image_urls: [], options: {} },
-        execution: "disabled_in_skeleton",
+        execution: "prepare_only",
+        execution_enabled: false,
         note: "Preparation only. Validate the template-specific schema and image slots before enabling paid execution.",
     };
 }
@@ -101,7 +170,6 @@ export function openCrunWorkspace(initialTab = "connection") {
     dialog.setAttribute("aria-labelledby", "crun-workspace-title");
     dialog.setAttribute("aria-describedby", "crun-workspace-description");
     dialog.tabIndex = -1;
-    let nonce = "";
     let currentStatus = null;
     let activeTab = initialTab;
     let currentProvider = "kling";
@@ -120,7 +188,7 @@ export function openCrunWorkspace(initialTab = "connection") {
     const close = button("Close", closeWorkspace, "crun-button crun-button-quiet");
     close.setAttribute("aria-label", "Close CRUN Next workspace");
     header.append(headingGroup, close);
-    const notice = node("div", "crun-notice", "Foundation release · No paid generation or upload can run from this workspace.");
+    const notice = node("div", "crun-notice", "This workspace browses and prepares. Paid generation is only available through an explicitly enabled execution node.");
     const tabs = node("div", "crun-tabs");
     tabs.setAttribute("role", "tablist");
     tabs.setAttribute("aria-label", "CRUN workspace sections");
@@ -130,7 +198,7 @@ export function openCrunWorkspace(initialTab = "connection") {
     const feedback = node("p", "crun-feedback");
     feedback.setAttribute("role", "status");
     feedback.setAttribute("aria-live", "polite");
-    for (const [id, label] of [["connection", "Connection"], ["effects", "AI Effects"], ["tools", "AI Tools"]]) {
+    for (const [id, label] of [["connection", "Connection"], ["models", "Models"], ["effects", "AI Effects"], ["tools", "AI Tools"]]) {
         const tabButton = button(label, () => selectTab(id), "crun-tab");
         tabButton.id = `crun-tab-${id}`;
         tabButton.setAttribute("role", "tab");
@@ -154,33 +222,12 @@ export function openCrunWorkspace(initialTab = "connection") {
         feedback.classList.toggle("crun-error", isError);
     }
 
-    async function localRequest(path, { method = "GET", body, useNonce = true } = {}) {
-        if (useNonce && !nonce) await readStatus();
-        const headers = { Accept: "application/json" };
-        if (useNonce) headers["X-CRUN-Nonce"] = nonce;
-        if (body !== undefined) headers["Content-Type"] = "application/json";
-        let response;
-        try {
-            response = await api.fetchApi(`${ROOT}${path}`, {
-                method, headers, body: body === undefined ? undefined : JSON.stringify(body),
-                cache: "no-store", signal: controller.signal,
-            });
-        } catch (error) {
-            if (error?.name === "AbortError") throw error;
-            throw new Error("Cannot reach the local CRUN Next extension. Check installation and restart ComfyUI.");
-        }
-        let payload;
-        try { payload = await response.json(); }
-        catch { throw new Error("The local CRUN Next extension returned an unreadable response."); }
-        if (!response.ok || !payload.ok) {
-            throw new Error(typeof payload.error === "string" ? payload.error.slice(0, 400) : "The operation could not be completed.");
-        }
-        return payload;
+    async function localRequest(path, options = {}) {
+        return localApiRequest(path, { ...options, signal: controller.signal });
     }
 
     async function readStatus() {
-        const status = await localRequest("/status", { useNonce: false });
-        nonce = status.nonce || "";
+        const status = await readPublicStatus(controller.signal);
         currentStatus = status;
         renderStatus();
         return status;
@@ -212,6 +259,7 @@ export function openCrunWorkspace(initialTab = "connection") {
             tabButton.tabIndex = tabId === activeTab ? 0 : -1;
         }
         if (activeTab === "tools") void loadTools();
+        if (activeTab === "models") void loadModels();
     }
 
     tabs.addEventListener("keydown", event => {
@@ -272,7 +320,8 @@ export function openCrunWorkspace(initialTab = "connection") {
     const balanceText = node("strong", "crun-balance-value", "Not checked");
     const balanceTime = node("span", "crun-muted crun-small");
     const checkButton = button("Check connection & balance", () => runAction(checkButton, async () => {
-        const result = await localRequest("/connection", { method: "POST", body: {} });
+        const result = await checkSavedConnection();
+        await readStatus();
         balanceText.textContent = formatCredits(result.balance);
         balanceTime.textContent = `Checked ${new Date().toLocaleTimeString()}`;
         announce("Connection verified. Balance read from CRUN; no generation was submitted.");
@@ -285,14 +334,19 @@ export function openCrunWorkspace(initialTab = "connection") {
         if (!currentStatus) return;
         const source = currentStatus.source === "environment" || currentStatus.source === "env" ? "environment variable" : "local storage";
         credentialStatus.textContent = currentStatus.configured
-            ? `Key configured via ${source}${currentStatus.key_hint ? ` · ${currentStatus.key_hint}` : ""}. Saved is not the same as verified.`
+            ? `Saved key via ${source}${currentStatus.key_hint ? ` · ${currentStatus.key_hint}` : ""}. ${connectionText(currentStatus)}.`
             : "No CRUN key configured. KIE settings remain unchanged.";
-        dialog.dataset.version = String(currentStatus.version || "0.1.0");
+        if (currentStatus.last_balance !== null && currentStatus.last_balance !== undefined) {
+            balanceText.textContent = formatCredits(currentStatus.last_balance);
+            const checkedAt = currentStatus.balance_checked_at || currentStatus.checked_at;
+            balanceTime.textContent = checkedAt ? `Last known balance · checked ${new Date(checkedAt * 1000).toLocaleString()}` : "Last known balance · not live";
+        }
+        dialog.dataset.version = String(currentStatus.version || "0.2.0");
     }
 
     const effects = panels.get("effects");
     const effectIntro = node("div", "crun-section-heading");
-    effectIntro.append(node("h3", "", "AI Effects library"), node("p", "crun-muted", "Browse provider templates and prepare an effect plan. Execution is intentionally disabled in this foundation release."));
+    effectIntro.append(node("h3", "", "AI Effects library"), node("p", "crun-muted", "Browse provider templates and prepare an effect plan here. Model-specific Comfy nodes offer prepare mode by default, with paid execution only when explicitly enabled."));
     const effectToolbar = node("div", "crun-toolbar");
     const providerLabel = node("label", "crun-label", "Provider");
     providerLabel.htmlFor = "crun-effect-provider";
@@ -394,10 +448,108 @@ export function openCrunWorkspace(initialTab = "connection") {
         planText.focus();
     }
 
+    const modelsPanel = panels.get("models");
+    modelsPanel.append(node("h3", "", "Model library"), node("p", "crun-muted", "Inspect documented operations and their exact inputs. Explicit refresh fetches public definitions and, when configured, checks the account's read-only LLM inventory. A catalog listing is not a successful generation test."));
+    const modelsToolbar = node("div", "crun-toolbar");
+    const modelSearch = node("input", "crun-input crun-search");
+    modelSearch.type = "search";
+    modelSearch.placeholder = "Search models, providers or input names";
+    modelSearch.setAttribute("aria-label", "Search model catalog");
+    const modelProvider = node("select", "crun-input crun-provider");
+    modelProvider.setAttribute("aria-label", "Filter models by provider");
+    const modelKind = node("select", "crun-input crun-provider");
+    modelKind.setAttribute("aria-label", "Filter models by task kind");
+    let modelSnapshot = null;
+    let modelLoading = false;
+    const modelSummary = node("p", "crun-muted crun-small");
+    const modelGrid = node("div", "crun-card-grid");
+    const modelDetails = node("section", "crun-surface crun-model-details");
+    modelDetails.hidden = true;
+    const refreshModels = button("Refresh public model definitions", () => runAction(refreshModels, async () => {
+        const result = await localRequest("/models/refresh", { method: "POST", body: {} });
+        modelSnapshot = result.catalog || result;
+        updateModelFilters();
+        renderModels();
+        announce("Catalog refreshed. Any account inventory included is a read-only snapshot; no generation was submitted.");
+    }), "crun-button crun-button-primary");
+    modelsToolbar.append(modelSearch, modelProvider, modelKind, refreshModels);
+    modelsPanel.append(modelsToolbar, modelSummary, modelGrid, modelDetails);
+    modelSearch.addEventListener("input", renderModels);
+    modelProvider.addEventListener("change", renderModels);
+    modelKind.addEventListener("change", renderModels);
+
+    async function loadModels() {
+        if (modelSnapshot || modelLoading) return;
+        modelLoading = true;
+        modelSummary.textContent = "Reading local catalog snapshot…";
+        try {
+            const result = await localRequest("/models");
+            modelSnapshot = result.catalog || result;
+            updateModelFilters();
+            renderModels();
+        } catch (error) {
+            modelSummary.textContent = error.message || "Model catalog unavailable.";
+        } finally { modelLoading = false; }
+    }
+
+    function updateModelFilters() {
+        const entries = Array.isArray(modelSnapshot?.entries) ? modelSnapshot.entries : [];
+        for (const [select, field, allLabel] of [[modelProvider, "provider", "All providers"], [modelKind, "kind", "All task kinds"]]) {
+            const previous = select.value;
+            select.replaceChildren();
+            const any = node("option", "", allLabel);
+            any.value = "";
+            select.append(any);
+            for (const value of [...new Set(entries.map(entry => String(entry[field] || "unknown")))].sort()) {
+                const option = node("option", "", value);
+                option.value = value;
+                select.append(option);
+            }
+            select.value = [...select.children].some(option => option.value === previous) ? previous : "";
+        }
+    }
+
+    function renderModels() {
+        const entries = Array.isArray(modelSnapshot?.entries) ? modelSnapshot.entries : [];
+        const query = modelSearch.value.trim().toLowerCase();
+        const matching = entries.filter(entry => (!modelProvider.value || entry.provider === modelProvider.value)
+            && (!modelKind.value || entry.kind === modelKind.value)
+            && [entry.title, entry.model, entry.provider, entry.kind, JSON.stringify(entry.inputs?.properties || {})]
+                .some(value => String(value || "").toLowerCase().includes(query)));
+        const summary = modelSnapshot?.summary || {};
+        const refreshed = modelSnapshot?.refreshed_at;
+        const refreshedText = refreshed ? ` · snapshot ${new Date(typeof refreshed === "number" ? refreshed * 1000 : refreshed).toLocaleString()}` : " · not refreshed yet";
+        modelSummary.textContent = `${summary.unique_model_count ?? new Set(entries.map(entry => entry.model)).size} model IDs · ${entries.length} documented operations · ${matching.length} match${refreshedText}${matching.length > 100 ? " · showing first 100; filter to narrow" : ""}`;
+        modelGrid.replaceChildren();
+        if (!matching.length) modelGrid.append(node("p", "crun-empty", entries.length ? "No matching model operations." : "No local model catalog yet. Refresh public model definitions to discover operations."));
+        for (const entry of matching.slice(0, 100)) {
+            const card = node("article", "crun-effect-card");
+            card.append(node("span", "crun-badge", `${entry.provider || "CRUN"} · ${entry.kind || "model"}`), node("h4", "", entry.title || entry.model || entry.operation_id || entry.id), node("p", "crun-muted crun-small crun-template-id", entry.model || entry.operation_id || entry.id));
+            card.append(node("p", "crun-muted crun-small", modelAvailabilityText(entry, modelSnapshot?.account_catalog_checked_at)));
+            card.append(button("Inspect inputs", () => showModelDetails(entry)));
+            modelGrid.append(card);
+        }
+    }
+
+    function showModelDetails(entry) {
+        modelDetails.hidden = false;
+        modelDetails.replaceChildren(node("h3", "", entry.title || entry.model || entry.operation_id || entry.id), node("p", "crun-template-id", entry.model || entry.operation_id || entry.id), node("p", "crun-muted crun-small", `${entry.method || ""} ${entry.endpoint || ""} · ${entry.auth || "see definition"}`));
+        const schema = entry.inputs || entry.input_schema || {};
+        const schemaBox = node("textarea", "crun-input crun-plan-json");
+        schemaBox.readOnly = true;
+        schemaBox.setAttribute("aria-label", "Documented model input schema");
+        schemaBox.value = JSON.stringify(schema, null, 2);
+        modelDetails.append(node("p", "crun-muted crun-small", modelAvailabilityText(entry, modelSnapshot?.account_catalog_checked_at)), node("p", "crun-muted", "Required fields, enums, nested objects and references follow the published schema below. This panel does not submit requests."), schemaBox);
+        if (safeRemoteUrl(entry.documentation_url)) modelDetails.append(link("Official operation documentation ↗", entry.documentation_url));
+        schemaBox.focus();
+    }
+
     const toolsPanel = panels.get("tools");
-    toolsPanel.append(node("h3", "", "AI Tools workbench"), node("p", "crun-muted", "A curated roadmap of CRUN utilities. These cards are documentation only—not runnable nodes yet."));
+    toolsPanel.append(node("h3", "", "AI Tools workbench"), node("p", "crun-muted", "Explore every documented utility from the current model catalog. Model-specific nodes are available under CRUN Next → AI Tools. They prepare by default; paid execution requires explicit enablement. These workspace cards do not run tasks."));
     const toolsGrid = node("div", "crun-card-grid");
-    toolsPanel.append(toolsGrid);
+    const toolDetails = node("section", "crun-surface crun-model-details");
+    toolDetails.hidden = true;
+    toolsPanel.append(toolsGrid, toolDetails);
     async function loadTools() {
         if (tools !== null || toolsPending) return;
         toolsPending = true;
@@ -408,7 +560,20 @@ export function openCrunWorkspace(initialTab = "connection") {
             toolsGrid.replaceChildren();
             for (const tool of tools) {
                 const card = node("article", "crun-effect-card");
-                card.append(node("span", "crun-badge", "PLANNED · NOT RUNNABLE"), node("h4", "", tool.name || tool.id), node("p", "crun-muted crun-small", tool.category || "AI Tool"), node("p", "", tool.description || ""));
+                const readiness = tool.status === "node_available" ? "COMFY NODE AVAILABLE · DEFAULT PREPARE" : "DOCUMENTED · VERIFY NODE AVAILABILITY";
+                card.append(node("span", "crun-badge", readiness), node("h4", "", tool.name || tool.id), node("p", "crun-muted crun-small", tool.category || "AI Tool"), node("p", "", tool.description || ""));
+                if (tool.node_menu) card.append(node("p", "crun-muted crun-small crun-template-id", `Nodes menu: ${tool.node_menu}`));
+                if (tool.usage_note) card.append(node("p", "crun-muted crun-small", tool.usage_note));
+                card.append(button("Inspect tool inputs", () => {
+                    toolDetails.hidden = false;
+                    toolDetails.replaceChildren(node("h3", "", tool.name || tool.model || tool.id));
+                    const schema = node("textarea", "crun-input crun-plan-json");
+                    schema.readOnly = true;
+                    schema.setAttribute("aria-label", "Documented tool input schema");
+                    schema.value = JSON.stringify(tool.input_schema || {}, null, 2);
+                    toolDetails.append(node("p", "crun-muted", "These controls are exposed in the model-specific Comfy node. Inspecting this definition does not submit a task."), schema);
+                    schema.focus();
+                }));
                 const docs = safeRemoteUrl(tool.documentation_url);
                 if (docs) card.append(link("Read API definition ↗", docs));
                 toolsGrid.append(card);
@@ -429,25 +594,137 @@ export function openCrunWorkspace(initialTab = "connection") {
     void readStatus().catch(error => announce(error.message || "Could not read local configuration.", true));
 }
 
+function settingsAction(control, message, action) {
+    return async () => {
+        control.disabled = true;
+        message.textContent = "Working…";
+        try { await action(); }
+        catch (error) { message.textContent = error.message || "CRUN Next action failed."; }
+        finally { control.disabled = false; }
+    };
+}
+
+// A custom renderer never calls the settings setter with a credential. Its value
+// remains empty; the secret is posted directly to the protected local backend.
+export function renderConnectionSetting(kind) {
+    installStyles();
+    const row = node("div", "crun-settings-row");
+    const info = node("p", "crun-settings-text", "Reading saved backend state…");
+    const message = node("p", "crun-small crun-settings-message");
+    message.setAttribute("role", "status");
+    const controls = node("div", "crun-settings-controls");
+    row.append(info, controls, message);
+    if (kind === "key") {
+        const input = node("input", "crun-input");
+        input.type = "password";
+        input.autocomplete = "off";
+        input.spellcheck = false;
+        input.placeholder = "Paste / replace CRUN API key";
+        input.setAttribute("aria-label", "Paste or replace CRUN API key");
+        if (typeof MutationObserver !== "undefined") {
+            let wasConnected = false;
+            const observer = new MutationObserver(() => {
+                if (row.isConnected) wasConnected = true;
+                else if (wasConnected) {
+                    input.value = "";
+                    observer.disconnect();
+                }
+            });
+            observer.observe(document.body, { childList: true, subtree: true });
+        }
+        const save = button("Save key", () => {} , "crun-button crun-button-primary");
+        save.addEventListener("click", settingsAction(save, message, async () => {
+            const value = input.value.trim();
+            input.value = "";
+            if (!value) throw new Error("Paste a CRUN key before saving.");
+            await localApiRequest("/credentials", { method: "POST", body: { api_key: value } });
+            await readPublicStatus();
+            message.textContent = "Key saved on the backend. Only its masked fingerprint remains visible.";
+        }));
+        controls.append(input, save);
+    } else if (kind === "connection") {
+        const check = button("Test saved key & refresh balance", () => {}, "crun-button crun-button-primary");
+        check.addEventListener("click", settingsAction(check, message, async () => {
+            await checkSavedConnection();
+            message.textContent = "Connection checked with CRUN. No generation submitted.";
+        }));
+        controls.append(check);
+    } else if (kind === "balance") {
+        const refresh = button("Refresh balance", () => {});
+        refresh.addEventListener("click", settingsAction(refresh, message, async () => {
+            await checkSavedConnection();
+            message.textContent = "Last known balance updated from CRUN.";
+        }));
+        controls.append(refresh);
+    } else if (kind === "saved") {
+        const remove = button("Remove saved key", () => {});
+        remove.addEventListener("click", settingsAction(remove, message, async () => {
+            await localApiRequest("/credentials/clear", { method: "POST", body: {} });
+            await readPublicStatus();
+            message.textContent = "Saved key removed. Environment credentials, if set, are not modified.";
+        }));
+        controls.append(remove);
+    }
+    const refreshView = status => {
+        if (!status) { info.textContent = "Checking saved backend state…"; return; }
+        if (kind === "key") info.textContent = "Paste once; stored outside workflows and browser settings.";
+        else if (kind === "saved") info.textContent = status.configured
+            ? `Saved key: ${status.key_hint || "••••"} · ${status.source === "environment" ? "environment override" : status.storage || "backend"}`
+            : "No API key saved";
+        else if (kind === "connection") info.textContent = connectionText(status);
+        else if (kind === "balance") {
+            const checkedAt = status.balance_checked_at || status.checked_at;
+            info.textContent = status.last_balance !== null && status.last_balance !== undefined
+                ? `Last known balance: ${formatCredits(status.last_balance)}${checkedAt ? ` · checked ${new Date(checkedAt * 1000).toLocaleString()}` : ""} · not a live balance`
+                : "Balance not checked. CRUN credits are separate from KIE and Comfy.";
+        }
+    };
+    settingsViews.set(kind, refreshView);
+    refreshView(latestStatus);
+    // This reads only local state, never the provider balance automatically.
+    void readPublicStatus().catch(() => { info.textContent = "Backend unavailable. Restart ComfyUI after installation."; });
+    return row;
+}
+
 app.registerExtension({
     name: "CRUN.Next.Workspace",
-    commands: [{ id: "CRUNNext.OpenWorkspace", label: "Open CRUN Next", function: () => openCrunWorkspace() }],
-    menuCommands: [{ path: ["Extensions", "CRUN Next"], commands: ["CRUNNext.OpenWorkspace"] }],
-    settings: [{
+    commands: [
+        { id: "CRUNNext.OpenWorkspace", label: "Open CRUN Next", function: () => openCrunWorkspace() },
+        { id: "CRUNNext.OpenModels", label: "Model library", function: () => openCrunWorkspace("models") },
+        { id: "CRUNNext.OpenEffects", label: "AI Effects", function: () => openCrunWorkspace("effects") },
+        { id: "CRUNNext.OpenTools", label: "AI Tools", function: () => openCrunWorkspace("tools") },
+    ],
+    menuCommands: [{ path: ["Extensions", "CRUN Next"], commands: ["CRUNNext.OpenWorkspace", "CRUNNext.OpenModels", "CRUNNext.OpenEffects", "CRUNNext.OpenTools"] }],
+    settings: [
+        ...[
+            ["APIKeyEntry", "Paste / replace CRUN API key", "key"],
+            ["SavedKey", "Saved API key", "saved"],
+            ["ConnectionState", "CRUN connection", "connection"],
+            ["CreditBalance", "Credit balance", "balance"],
+        ].map(([id, name, kind]) => ({
+            id: `CRUNNext.Connection.${id}`, name,
+            category: ["CRUN Next", "Connection", name],
+            type: () => renderConnectionSetting(kind),
+            defaultValue: "",
+            tooltip: "Live backend state. API credentials are never written to Comfy's setting values.",
+        })),
+        {
         id: OPEN_SETTING,
         name: "Open connection & creative workspace",
         category: ["CRUN Next", "Connection", "Open workspace"],
         type: "boolean",
         defaultValue: false,
         tooltip: "Open the CRUN Next workspace to save your API key securely on the local backend. No key is stored in this setting.",
-        onChange(value) {
+        onChange(setting, newValue) {
+            const value = typeof newValue === "undefined" ? setting : newValue;
             if (value !== true) return;
             openCrunWorkspace();
             const settings = app.extensionManager?.setting;
-            if (settings?.set) void settings.set(OPEN_SETTING, false);
+            if (settings?.set) void settings.set(OPEN_SETTING, false).catch(() => {});
             else app.ui?.settings?.setSettingValue?.(OPEN_SETTING, false);
         },
-    }],
+        },
+    ],
     setup() {
         installStyles();
         // A small discoverable launcher is also a fallback for older Comfy frontends.

@@ -1,0 +1,139 @@
+{
+  "last_node_id": 2,
+  "last_link_id": 0,
+  "nodes": [
+    {
+      "id": 1,
+      "type": "CRUN_Next_bytedance_template_3245623453_05978e818b15",
+      "pos": [
+        570,
+        120
+      ],
+      "size": [
+        500,
+        430
+      ],
+      "flags": {},
+      "order": 0,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "crun_mode",
+          "type": "COMBO",
+          "widget": {
+            "name": "crun_mode"
+          },
+          "link": null,
+          "slot_index": 0
+        },
+        {
+          "name": "crun_allow_paid_generation",
+          "type": "BOOLEAN",
+          "widget": {
+            "name": "crun_allow_paid_generation"
+          },
+          "link": null,
+          "slot_index": 1
+        },
+        {
+          "name": "crun_max_credits",
+          "type": "FLOAT",
+          "widget": {
+            "name": "crun_max_credits"
+          },
+          "link": null,
+          "slot_index": 2
+        },
+        {
+          "name": "img_urls",
+          "type": "STRING",
+          "widget": {
+            "name": "img_urls"
+          },
+          "link": null,
+          "slot_index": 3
+        },
+        {
+          "name": "resolution",
+          "type": "COMBO",
+          "widget": {
+            "name": "resolution"
+          },
+          "link": null,
+          "slot_index": 4
+        }
+      ],
+      "outputs": [
+        {
+          "name": "result_json",
+          "type": "STRING",
+          "links": null,
+          "slot_index": 0
+        },
+        {
+          "name": "task_id",
+          "type": "STRING",
+          "links": null,
+          "slot_index": 1
+        },
+        {
+          "name": "credits",
+          "type": "FLOAT",
+          "links": null,
+          "slot_index": 2
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "CRUN_Next_bytedance_template_3245623453_05978e818b15"
+      },
+      "widgets_values": [
+        "prepare",
+        false,
+        0.0,
+        "[]",
+        "2k"
+      ],
+      "title": "CRUN • Mom is the Star This Moment (Image Template)"
+    },
+    {
+      "id": 2,
+      "type": "Note",
+      "pos": [
+        50,
+        120
+      ],
+      "size": [
+        460,
+        480
+      ],
+      "flags": {},
+      "order": 1,
+      "mode": 0,
+      "properties": {},
+      "widgets_values": [
+        "CRUN NEXT — SAFE START\n\nThis workflow defaults to PREPARE: no API request, upload or charge.\nEnter your API key only through Settings > CRUN Next, never in a workflow.\nFill the model-specific fields. Arrays/objects use JSON. Media references currently need public HTTPS URLs.\nESTIMATE requests a quote without generation. GENERATE requires explicit paid permission and a positive maximum-credit ceiling.\nDo not share private media links when publishing this workflow.\n\nOption: Mom is the Star This Moment (Image Template)\nModel: bytedance/template\nDocumentation: https://docs.crun.ai/templates/bytedance-template\n\nEffects: the fixed template identifier belongs to this node. Preserve reference order; confirm any unknown slot counts in the provider instructions.\n"
+      ],
+      "color": "#263341",
+      "bgcolor": "#17232d"
+    }
+  ],
+  "links": [],
+  "groups": [],
+  "config": {},
+  "extra": {
+    "ds": {
+      "scale": 0.8,
+      "offset": [
+        30,
+        30
+      ]
+    },
+    "crun_next": {
+      "entry_id": "effect:bytedance:3245623453",
+      "model": "bytedance/template",
+      "default_mode": "prepare",
+      "generation_tested": false
+    }
+  },
+  "version": 0.4
+}

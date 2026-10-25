@@ -2,114 +2,163 @@
 
 An independent **CRUN integration for ComfyUI**, by Felipe Silva. Built on the
 lessons of [KIE Nodes Next](https://github.com/felipederosilva/ComfyUI-KIE-Nodes-Next),
-with separate code, credentials, node IDs and installation. Not affiliated with or
-endorsed by CRUN or Comfy Org.
+with separate code, credentials, node IDs and installation. Not affiliated with
+or endorsed by CRUN or Comfy Org.
 
-## 0.1.0 — connection and discovery alpha
+## 0.2.0 — model catalog, AI Effects and AI Tools
 
-This is a working skeleton, **not an all-model generation pack**. You can configure
-your own CRUN API key, check your balance and explore provider Effects catalogs.
-No paid generation or file-upload endpoint is implemented in this release.
+Explore CRUN models in Comfy, start from a workflow for each option, and prepare
+a request with that model's documented fields. Compatible media tasks can be
+submitted through an explicit generation gate. **No real paid generation has
+been tested in this release.** Native uploads, automatic polling and result
+preview/download/save are not implemented yet.
+
+The bundled snapshot was collected on **25 October 2026**:
+
+| Inventory | Bundled coverage |
+| --- | --- |
+| Model/operation definitions | 274 entries, including 273 exact wire model IDs across 21 providers |
+| LLM definitions | 64 IDs in the documentation/live-discovery union: 55 listed by the authenticated check, 9 documentation-only |
+| Individual AI Effects | 1,063 unique templates: Kling 226, ByteDance 341, Vidu 496 |
+| Effects source records | 1,088 records; repeated template IDs share a node with retained variants |
+| AI Tools | 18 documented tools, included in the model/operation definitions above |
+| Generated catalog nodes and starter workflows | 1,337 of each |
+| All registered nodes | 1,344, including 7 setup/utility nodes |
+
+These counts describe discovered definitions, not tested execution or access for
+every CRUN account. Documentation-only LLMs are explicitly labeled as not listed
+by the discovery check. LLMs and operations with dedicated protocols are
+**prepare-only**. Current media references require public HTTPS URLs.
 
 ![CRUN Next connection workspace](docs/screenshots/connection.png)
 
-| Feature | 0.1.0 status |
-| --- | --- |
-| Comfy settings connection panel | Implemented; enter your key locally |
-| Account balance | Implemented; explicit live check |
-| Kling / ByteDance / Vidu Effects discovery | Implemented; requires your key; live catalog shape still needs account testing |
-| Effects thumbnails / video previews | Opt-in only; no website assets bundled |
-| Draft effect payload preparation | Implemented offline; **does not execute** |
-| Task-cost estimate | Implemented; estimate endpoint does not create a job |
-| Existing media task inspection | Implemented; distinguishes reserved from actual credits |
-| AI Tools workspace | Researched roadmap cards with official documentation; **not executable yet** |
-| Native IMAGE / VIDEO / AUDIO uploads and generation | Planned |
-| All-model schema synchronization | Planned; no blanket support claim |
-| Comfy Registry listing | Not submitted |
+## Install or update
 
-## Install in Comfy Desktop / local ComfyUI
-
-Use the **actual backend ComfyUI folder** containing `main.py` and `custom_nodes`.
-Do not install into the Desktop application's program/resources folder.
+Use the backend ComfyUI folder containing `main.py` and `custom_nodes`, not the
+Desktop program/resources directory. Obtain source from this repository or an
+available package from [Releases](https://github.com/felipederosilva/ComfyUI-CRUN-Nodes-Next/releases).
 
 1. Close Comfy Desktop.
-2. Download this repository or the tagged release ZIP. Extract the package into
-   `ComfyUI/custom_nodes/ComfyUI-CRUN-Nodes-Next` (with `__init__.py` directly inside).
-   Alternatively clone this repository into that location.
-3. If dependencies are missing, install `requirements.txt` with **Comfy's Python**.
-   This package uses `requests` and `aiohttp`; most current Comfy installs have them.
-4. Start Comfy Desktop and refresh its interface.
-5. Open **Settings → CRUN Next → Connection** and turn on
-   **Open connection & creative workspace** (it opens the panel and resets itself).
-   A **CRUN Next** launcher/menu action is also provided when supported.
-6. Paste your key into the password field and choose **Save key**. Then use
-   **Check connection** to make a read-only account-balance request.
+2. For an update, move the previous CRUN extension folder to a backup location
+   **outside custom_nodes**. Comfy can import backups left inside that directory.
+3. Extract into `ComfyUI/custom_nodes/ComfyUI-CRUN-Nodes-Next`, with
+   `__init__.py` directly inside. Avoid an extra nested repository folder.
+4. If needed, install `requirements.txt` with **Comfy's Python**. The package
+   requires `requests` and `aiohttp`.
+5. Start Comfy and refresh the interface. Open **Settings → CRUN Next → Connection**.
+   Use **Paste / replace CRUN API key**, **Save key**, then **Check connection**.
+6. Open the **CRUN Next** launcher or **Extensions → CRUN Next** for **Models**,
+   **AI Effects** and **AI Tools**. Search **CRUN** in the Nodes menu.
 
-The included `scripts/install.py` is an optional **first-install-only** helper:
+The four native settings rows expose key entry, a safe saved-key summary,
+connection state and balance. Saved status is historical; use a live check to
+confirm the current key/balance. Credentials live outside the extension package.
+
+The optional helper is **first-install-only**:
 
 ```powershell
 python scripts/install.py --custom-nodes "C:\path\to\ComfyUI\custom_nodes"
 ```
 
 It requires the explicit backend path, refuses an existing destination, copies an
-allowlist, verifies hashes, and does not install dependencies or start Comfy.
+allowlist and verifies hashes. It does not install dependencies or start Comfy.
+
+## Start with a catalog workflow
+
+Open a matching JSON from [example_workflows](example_workflows). The manifest
+maps each starter to its entry and node type. Each model, tool and unique Effects
+template has an individual node; required inputs, choices and limits come from
+its schema. Arrays and objects use JSON fields.
+
+1. Keep `crun_mode=prepare`, `crun_allow_paid_generation=false` and
+   `crun_max_credits=0`. Fill the fields and run to inspect the payload and
+   validation errors locally. No provider request is made.
+2. For a supported media operation, select `estimate` to request a quote without
+   creating a job. Review the model, references, parameters and estimated credits.
+3. To submit intentionally, select `generate`, enable paid permission and set a
+   positive maximum-credit ceiling. The node gets a fresh estimate, checks budget
+   and balance, then submits **once**. This ceiling checks the estimate; it is
+   not a provider-enforced cap on the final bill.
+4. Keep the returned `task_id`. Use **Inspect Existing Task** to check the same
+   task manually. Automatic polling, downloading and native media outputs are
+   not implemented.
+
+On timeout or an unknown submission outcome, inspect CRUN's task logs before
+submitting again. There is no automatic retry. A local journal keeps submission
+markers/task IDs without prompts, media URLs or keys. Disarm generation before
+editing or sharing a workflow: another execution of an armed node can create
+another paid job.
+
+Some conditional requirements, file limits and template slot meanings appear
+only in provider prose. Review the linked documentation; a schema is not proof
+that every parameter combination works. Native files are not uploaded implicitly.
+
+## Credits and utility nodes
+
+- **Connection Status** reads safe local configuration without contacting CRUN.
+- **Credits** reads balance and prints it in Comfy's console.
+- **Effects Catalog** reads one provider's live metadata for inspection.
+- **Prepare Effect Plan (Draft)** prepares an offline payload.
+- **Estimate Credits (No Generation)** requests a model/input quote.
+- **Inspect Existing Task** reads status/cost without creating another job.
+- **AI Tools Catalog** lists the documented tools and input definitions; individual
+  tool nodes exist under **CRUN Next → AI Tools**.
+
+Read-only utility requests can repeat when queued. CRUN credits are separate from
+KIE and Comfy credits. Task cost is reserved while pending/running and actual
+after success/failed according to [CRUN's task contract](https://docs.crun.ai/models/common/get-task-info).
+Missing cost is shown as unavailable, not zero. Shared balance changes are not
+used to infer an individual task's actual cost.
+
+## Catalog sources and refresh
+
+Sources are CRUN's [documentation inventory](https://docs.crun.ai/llms.txt),
+English model OpenAPI definitions, the [LLM documentation table](https://docs.crun.ai/models/llm-list)
+and the documented [live LLM inventory](https://docs.crun.ai/models/llm/quickstart).
+Exact IDs come from schemas/discovery, never marketing names or page slugs.
+Endpoint, protocol, source and availability labels remain attached to entries.
+
+The workspace refresh is an explicit action; opening the catalog does not
+contact CRUN. Public definitions come from documentation without credentials.
+When a configured key is used for live LLM discovery, the separate authenticated
+GET reads inventory only and preserves its distinct availability labels.
+The Effects template snapshot has its own read-only sync. Restart Comfy after a
+catalog refresh to register changed node definitions. Caches are separate from
+credentials; source errors remain visible.
+
+Developer commands, from a source checkout:
+
+```powershell
+python scripts/sync_catalog.py
+python scripts/sync_effects.py --comfy-root "C:\path\to\ComfyUI"
+python scripts/build_templates.py
+```
+
+Public model sync does not itself query account availability. Effects sync uses
+the locally configured key for catalog GETs. Never pass a secret on the command
+line. Review source labels/counts before publishing regenerated metadata.
 
 ## Credentials and privacy
 
-- Create your own key at [CRUN API keys](https://crun.ai/user-api-key).
-- Keys are submitted only to the local Comfy backend, then used by that backend
-  with CRUN. The credential is **not a graph widget** and is never written into
-  workflow JSON, browser localStorage or persistent Comfy frontend settings.
-- Windows: saved keys use **Windows DPAPI, current user**. They are not portable
-  to another Windows account/machine. A DPAPI failure does not fall back to plaintext.
-- Other systems: a local owner-readable file is used; this is **not encrypted**.
-- `CRUN_API_KEY` overrides a saved key for headless use. Clearing a saved key does
-  not unset the environment variable.
-- Configuration is stored outside the extension/repository in Comfy's user area,
-  or a platform-specific user config directory. `CRUN_NEXT_CONFIG_DIR` can select a
-  dedicated test location. Never put that location in a Git repository.
-- Connection-panel HTTP routes are intentionally **loopback-only** in this alpha;
-  remote/shared Comfy deployments need a separate multi-user security design.
-- Local plaintext HTTP, same-user malware and a compromised Comfy extension can
-  still compromise credentials. DPAPI is at-rest protection, not a security sandbox.
+Create your own key at [CRUN API keys](https://crun.ai/user-api-key) and enter it
+only in CRUN Next settings. It is sent to the local backend and is never saved in
+workflow JSON, browser localStorage or persistent Comfy setting values.
 
-## Nodes
+Windows keys use **DPAPI for the current user**, without plaintext fallback.
+Other platforms use an owner-readable file that is **not encrypted**.
+`CRUN_API_KEY` overrides saved storage; removing a saved key does not unset it.
+Configuration is in Comfy's user area or the platform user config directory.
+`CRUN_NEXT_CONFIG_DIR` can select a separate location outside Git. Credentials,
+connection receipts, catalog caches and task journal are separate files.
 
-Search **CRUN** in Comfy's node menu:
+The bridge is **loopback-only**, intended for a trusted single-user installation.
+DPAPI protects data at rest; another custom node or compromised same-user process
+can still access secrets or submit requests. Optional external previews load on
+user action and reveal the browser's IP to the media host. No third-party preview
+files or proprietary Effects implementation is bundled. Treat workflows with
+private media links as sensitive. See [SECURITY.md](SECURITY.md).
 
-- **Connection Status**: local safe configuration summary.
-- **Credits**: refresh the CRUN account balance; also prints it in Comfy's console.
-- **Effects Catalog**: fetch one provider's live template metadata.
-- **Prepare Effect Plan (Draft)**: prepare JSON from documented effect contracts.
-- **Estimate Credits (No Generation)**: submit a model/input JSON to cost estimation.
-- **Inspect Existing Task**: query a task ID without creating another generation.
-- **AI Tools Roadmap**: list researched tools and documentation, not executable nodes.
-
-These output nodes run when included in a queued graph. Read-only provider checks
-may repeat; no node in 0.1.0 can create a paid task. Node descriptions label this.
-
-Credits remain **CRUN credits**. They are not interchangeable with KIE or Comfy.
-Task credits are reserved while pending/running and actual after success/failed,
-according to [CRUN task documentation](https://docs.crun.ai/models/common/get-task-info).
-Missing cost data is shown as unavailable, never silently reported as zero.
-
-## Effects Studio and AI Tools
-
-Instead of one identical node per model, this project's direction is:
-
-- **Effects Studio**: visual discovery, named reference slots, provider-specific
-  requirements and an explicit budget/confirmation step.
-- **AI Tools Workbench**: focused image repair, inpainting, upscale and video
-  enhancement workflows, with useful native Comfy inputs/outputs.
-- **Credit clarity**: distinguish estimated, reserved, spent and remaining values.
-- **Reusable recipes**: record chosen effects/tools and inputs without embedding keys.
-
-Only the alpha features above exist today. See [ROADMAP.md](ROADMAP.md) and the
-[provider research](docs/PROVIDER_RESEARCH.md) for verified API surfaces and unknowns.
-No template previews, third-party website assets or proprietary effect code are
-redistributed. Templates still execute on CRUN, subject to their terms and charges.
-
-## Development and tests
+## Development and verification
 
 ```powershell
 python -m unittest discover -s tests -v
@@ -117,9 +166,12 @@ node --test tests/frontend*.mjs
 python scripts/build_release.py
 ```
 
-Tests are offline with fake transport responses. A local Comfy import/UI smoke
-test does not prove real CRUN authentication or generation. See
-[VALIDATION.md](VALIDATION.md) for the release's actual verification status.
+Read-only authenticated balance, LLM inventory and Effects discovery were
+exercised. Offline tests/schema coverage do not prove paid generation or every
+model's output quality. **No paid job, native upload or generated-media round
+trip has been tested.** [VALIDATION.md](VALIDATION.md) records actual checks.
+See [ROADMAP.md](ROADMAP.md) for next gates. Comfy Registry is not submitted.
 
-MIT license. Keep KIE Next installed alongside it if desired; neither package
-imports, overwrites or automatically routes requests through the other.
+MIT license. KIE Next remains independent; neither package imports, overwrites
+or routes requests through the other. Remote models/templates remain subject
+to CRUN's service terms, availability and charges.

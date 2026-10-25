@@ -76,6 +76,78 @@ class SettingsTests(unittest.TestCase):
         self.assertEqual(settings.settings_path().read_bytes(), before)
         self.assertEqual(list(Path(self.temporary.name).glob("*.tmp")), [])
 
+    def test_connection_receipt_survives_module_reload_without_exposing_key(self):
+        import importlib
+
+        key = "test-persistent-key-placeholder"
+        settings.save_api_key(key)
+        original_credential = settings.settings_path().read_bytes()
+        with patch.object(settings.time, "time", return_value=1234567890):
+            settings.record_connection("connected", 0)
+        importlib.reload(settings)
+        status = settings.public_status()
+        self.assertEqual(status["validation_state"], "connected")
+        self.assertEqual(status["last_balance"], 0)
+        self.assertEqual(status["checked_at"], 1234567890)
+        self.assertNotIn(key, settings.status_path().read_text(encoding="utf-8"))
+        self.assertNotIn("credential_fingerprint", status)
+        self.assertEqual(settings.settings_path().read_bytes(), original_credential)
+
+    def test_changed_key_invalidates_old_connection(self):
+        settings.save_api_key("test-old-placeholder-key")
+        settings.record_connection("connected", 120)
+        settings.save_api_key("test-new-placeholder-key")
+        status = settings.public_status()
+        self.assertTrue(status["configured"])
+        self.assertEqual(status["validation_state"], "saved")
+        self.assertIsNone(status["last_balance"])
+        self.assertEqual(status["checked_at"], 0)
+        self.assertFalse(settings.status_path().exists())
+
+    def test_same_key_keeps_connection_receipt(self):
+        key = "test-same-placeholder-key"
+        settings.save_api_key(key)
+        settings.record_connection("connected", 120)
+        settings.save_api_key(key)
+        self.assertEqual(settings.public_status()["last_balance"], 120)
+
+    def test_clear_key_also_clears_historical_balance(self):
+        settings.save_api_key("test-placeholder-key")
+        settings.record_connection("connected", 120)
+        settings.clear_api_key()
+        status = settings.public_status()
+        self.assertFalse(settings.status_path().exists())
+        self.assertEqual(status["validation_state"], "not_configured")
+        self.assertIsNone(status["last_balance"])
+
+    def test_environment_change_does_not_inherit_other_account_receipt(self):
+        with patch.dict(os.environ, {"CRUN_API_KEY": "test-environment-placeholder-one"}):
+            settings.record_connection("connected", 42)
+        with patch.dict(os.environ, {"CRUN_API_KEY": "test-environment-placeholder-two"}):
+            status = settings.public_status()
+            self.assertEqual(status["validation_state"], "saved")
+            self.assertIsNone(status["last_balance"])
+
+    def test_failed_check_keeps_balance_timestamp_historical(self):
+        settings.save_api_key("test-placeholder-key")
+        with patch.object(settings.time, "time", return_value=1000):
+            settings.record_connection("connected", 42)
+        with patch.object(settings.time, "time", return_value=2000):
+            settings.record_connection("unreachable")
+        status = settings.public_status()
+        self.assertEqual(status["validation_state"], "unreachable")
+        self.assertEqual(status["last_balance"], 42)
+        self.assertEqual(status["checked_at"], 2000)
+        self.assertEqual(status["balance_checked_at"], 1000)
+
+    def test_bad_connection_receipts_and_balances_are_safe(self):
+        settings.save_api_key("test-placeholder-key")
+        settings.status_path().write_text("not valid json", encoding="utf-8")
+        self.assertEqual(settings.public_status()["validation_state"], "saved")
+        for value in [False, -1, float("nan"), float("inf"), "42"]:
+            with self.subTest(value=value), self.assertRaises(settings.SettingsError):
+                settings.record_connection("connected", value)
+
     @unittest.skipUnless(os.name == "nt", "Windows DPAPI integration")
     def test_windows_file_is_encrypted(self):
         value = "test-placeholder-not-a-real-key"

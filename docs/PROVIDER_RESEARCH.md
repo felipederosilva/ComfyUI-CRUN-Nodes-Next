@@ -1,9 +1,10 @@
 # CRUN Effects and AI Tools research
 
-Research date: **2026-10-25**. This is an unofficial integration. No CRUN
-credentials, media uploads, task creation, or paid generation were used to
-validate this skeleton. API documentation is evidence of an integration surface,
-not proof of live availability or entitlement for a specific account.
+Research date: **2026-10-25**. This is an unofficial integration. The initial
+0.1 research below used public documentation. For 0.2, read-only authenticated
+balance, LLM inventory and complete Effects catalogs were checked. No media upload
+or paid generation was performed. Documentation and discovery do not prove that
+every operation executes successfully or is available to every account.
 
 ## Effects: researched interfaces
 
@@ -14,7 +15,9 @@ not proof of live availability or entitlement for a specific account.
 | Vidu | `GET /api/v1/client/job/vidu-templates` | `model: vidu/template`; input uses `template`, `images`, and optional supported options such as `bgm` |
 
 All three documented generation examples use the shared `CreateTask` endpoint
-with `x-api-key`. This release **does not expose execution** of those requests.
+with `x-api-key`. Version 0.2 provides explicitly armed single-task submission
+through individual nodes, with offline preparation as the default. Native media
+upload, automatic polling and decoded result outputs remain unimplemented.
 
 Sources:
 
@@ -50,11 +53,13 @@ provider-specific examples, while warnings identify missing references, unknown
 slot counts and resolution validation still required. It must never be confused
 with a completed task, cost quote, or provider-accepted request.
 
-## AI Tools: researched, not executable yet
+## AI Tools: initial research and 0.2 progress
 
 The [official documentation index](https://docs.crun.ai/llms.txt) lists dedicated
-image and video utilities. The skeleton includes a **curated planned-feature
-index**, not an authenticated live catalog or runnable tool implementation.
+image and video utilities. The 0.1 skeleton included a curated planned-feature
+index. In 0.2, all 18 documented tool operations have schema-aware Nodes-menu
+entries and workflow starters. Their workspace cards inspect inputs; supported
+media-task nodes can submit only through the explicit generation gate.
 
 First candidates are image upscale/Pro, expansion, background removal, inpainting,
 colorization, background regeneration, headshots and video enhancement. Relevant
@@ -70,8 +75,8 @@ must respect ownership, licenses and attribution rights.
 
 1. **Effects Library:** searchable template cards with explicit required-image
    slots, preview-on-demand, provider instructions and resolution-aware costs.
-2. **Effect Plan:** prepare and inspect a request without spending credits; add
-   preflight estimation and a deliberate execute gate in a later milestone.
+2. **Effect Plan:** prepare and inspect a request without spending credits;
+   individual nodes now provide preflight estimation and a deliberate execute gate.
 3. **Finishing Toolkit:** purpose-specific visual controls for cutouts, masks,
    reframing and restoration instead of a wall of generic prompt nodes.
 4. **Budget receipts:** distinguish estimate, reserved amount, final charge and

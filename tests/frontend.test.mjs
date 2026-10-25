@@ -6,6 +6,7 @@ const sourceUrl = new URL("../web/crun_next.js", import.meta.url);
 const source = await readFile(sourceUrl, "utf8");
 const requests = [];
 let definition;
+const publicState = { configured: true, source: "saved", key_hint: "••••abcd", nonce: "fake-test-nonce", version: "0.2.0", validation_state: "connected", last_balance: 0, checked_at: 1700000000, balance_checked_at: 1700000000 };
 
 class Element {
     constructor(tagName, document) {
@@ -63,10 +64,14 @@ globalThis.__crunTestApi = {
     async fetchApi(path, options) {
         requests.push({ path, ...options });
         let payload = { ok: true };
-        if (path.endsWith("/status")) payload = { ok: true, configured: true, source: "saved", key_hint: "••••abcd", nonce: "fake-test-nonce", version: "0.1.0" };
+        if (path.endsWith("/status")) payload = { ok: true, ...publicState };
         if (path.endsWith("/connection")) payload = { ok: true, balance: 0 };
         if (path.endsWith("/effects/catalog")) payload = { ok: true, cards: [{ id: "test-effect", provider: "kling", name: "<img src=x onerror=alert(1)>", category: "Test", required_images: 2, credits: 0, preview_url: "https://cdn.example.com/preview.mp4" }] };
-        if (path.endsWith("/tools")) payload = { ok: true, tools: [{ id: "upscale", name: "Upscale", category: "Image", description: "Provider utility", documentation_url: "https://docs.crun.ai/ai-tools/image-upscale", status: "planned" }] };
+        if (path.endsWith("/tools")) payload = { ok: true, tools: [{ id: "upscale", name: "Upscale", category: "Image", description: "Provider utility", documentation_url: "https://docs.crun.ai/ai-tools/image-upscale", status: "node_available", node_menu: "CRUN Next/AI Tools/CRUN", input_schema: { type: "object", properties: { image_url: { type: "string" } }, required: ["image_url"] } }] };
+        if (path.endsWith("/models") || path.endsWith("/models/refresh")) payload = { ok: true, entries: [
+            { id: "test-image", model: "google/test-image", title: "Test Image", provider: "Google", kind: "image", method: "POST", endpoint: "/documented", inputs: { type: "object", properties: { prompt: { type: "string" }, aspect_ratio: { type: "string", enum: ["16:9", "1:1"] } }, required: ["prompt"] }, documentation_url: "https://docs.crun.ai/models/google/test-image" },
+            { id: "test-video", model: "kling/test-video", title: "Test Video", provider: "Kling", kind: "video", inputs: { type: "object", properties: { first_frame: { type: "string" } } } },
+        ], summary: { entry_count: 2, unique_model_count: 2 }, refreshed_at: 1700000000 };
         return { ok: true, async json() { return payload; } };
     },
 };
@@ -100,7 +105,8 @@ test("effects search and plan preparation are local and non executable", () => {
     assert.deepEqual(ui.filterEffects(cards, " camera "), [cards[0]]);
     assert.equal(ui.filterEffects(cards, "not present").length, 0);
     const plan = ui.effectPlan(cards[0]);
-    assert.equal(plan.execution, "disabled_in_skeleton");
+    assert.equal(plan.execution, "prepare_only");
+    assert.equal(plan.execution_enabled, false);
     assert.equal(plan.required_images, 2);
     assert.deepEqual(plan.inputs.image_urls, []);
     assert.equal(ui.effectPlan(cards[1]).required_images, null);
@@ -108,8 +114,9 @@ test("effects search and plan preparation are local and non executable", () => {
 
 test("Comfy registration has no persisted credential setting", () => {
     assert.equal(definition.name, "CRUN.Next.Workspace");
-    assert.equal(definition.settings.length, 1);
-    assert.equal(definition.settings[0].type, "boolean");
+    assert.equal(definition.settings.length, 5);
+    assert.equal(definition.settings.filter(setting => typeof setting.type === "function").length, 4);
+    assert.equal(definition.settings.find(setting => setting.id === "CRUNNext.Workspace.Open").type, "boolean");
     assert.equal(definition.commands[0].id, "CRUNNext.OpenWorkspace");
     assert.equal(/localStorage|sessionStorage|innerHTML|console\.log/.test(source), false);
     assert.equal(/CreateTask|create_task/.test(source), false);
@@ -119,10 +126,11 @@ test("workspace uses ephemeral key entry and explicit catalog requests", async (
     const prior = new Element("button", document);
     document.body.append(prior);
     prior.focus();
+    const beforeOpen = requests.length;
     ui.openCrunWorkspace();
     await tick();
-    assert.equal(requests.length, 1);
-    assert.equal(requests[0].path, "/crun-next/status");
+    assert.equal(requests.length, beforeOpen + 1);
+    assert.equal(requests.at(-1).path, "/crun-next/status");
     const password = document.getElementById("crun-api-key-entry");
     assert.equal(password.type, "password");
     password.value = "fake-test-key-never-use";
@@ -145,12 +153,74 @@ test("workspace uses ephemeral key entry and explicit catalog requests", async (
     assert.equal(all(document.body).some(item => item.tagName === "textarea" && item.readOnly), true);
     await button("AI Tools").trigger("click");
     await tick();
-    assert.equal(all(document.body).some(item => item.textContent === "PLANNED · NOT RUNNABLE"), true);
+    assert.equal(all(document.body).some(item => item.textContent === "COMFY NODE AVAILABLE · DEFAULT PREPARE"), true);
+    await button("Inspect tool inputs").trigger("click");
+    const toolSchema = all(document.body).find(item => item.attributes["aria-label"] === "Documented tool input schema");
+    assert.deepEqual(JSON.parse(toolSchema.value).required, ["image_url"]);
     password.value = "unsaved-fake-key";
     await button("Close").trigger("click");
     assert.equal(password.value, "");
     assert.equal(document.activeElement, prior);
     assert.equal(document.getElementById("crun-api-key-entry"), null);
+});
+
+test("saved connection is historical and an unknown balance is not zero", () => {
+    assert.match(ui.connectionText(publicState), /Previously verified.*last check/);
+    assert.equal(ui.connectionText({ configured: false }), "No API key saved");
+    assert.equal(ui.connectionText({ configured: true, validation_state: "saved" }), "Key saved · not checked");
+});
+
+test("model availability distinguishes authenticated inventory from docs and execution", () => {
+    const listed = ui.modelAvailabilityText({ availability: "listed_in_authenticated_llm_catalog" }, "2026-10-25T15:00:00+00:00");
+    assert.match(listed, /Listed in last authenticated LLM inventory/);
+    assert.match(listed, /execution not tested/);
+    assert.match(listed, /checked/);
+    assert.doesNotMatch(listed, /not verified/);
+    const unlisted = ui.modelAvailabilityText({ availability: "not_listed_in_current_llm_catalog" });
+    assert.match(unlisted, /Not listed in last authenticated LLM inventory/);
+    assert.match(unlisted, /not an execution failure/);
+    assert.equal(ui.modelAvailabilityText({ availability: "documented_not_account_verified" }), "Documentation only · account availability not verified");
+    assert.equal(ui.modelAvailabilityText({}), "Documentation only · account availability not verified");
+});
+
+test("native settings key renderer bypasses Comfy's persisted setter", async () => {
+    let setterCalls = 0;
+    const setting = definition.settings.find(item => item.id === "CRUNNext.Connection.APIKeyEntry");
+    const row = setting.type("API key", () => { setterCalls++; }, "", {});
+    document.body.append(row);
+    await tick();
+    const input = all(row).find(item => item.tagName === "input");
+    input.value = "fake-key-native-settings";
+    await all(row).find(item => item.tagName === "button" && item.textContent === "Save key").trigger("click");
+    assert.equal(input.value, "");
+    assert.equal(setterCalls, 0);
+    assert.equal(JSON.parse(requests.findLast(request => request.path.endsWith("/credentials")).body).api_key, "fake-key-native-settings");
+    const savedRow = definition.settings.find(item => item.id === "CRUNNext.Connection.SavedKey").type();
+    const balanceRow = definition.settings.find(item => item.id === "CRUNNext.Connection.CreditBalance").type();
+    document.body.append(savedRow, balanceRow);
+    await tick();
+    assert.equal(all(savedRow).some(item => item.textContent.includes("••••abcd")), true);
+    assert.equal(all(balanceRow).some(item => item.textContent.includes("Last known balance: 0 credits") && item.textContent.includes("not a live balance")), true);
+    row.remove(); savedRow.remove(); balanceRow.remove();
+});
+
+test("Models tab reads cached definitions, filters and inspects exact input schema", async () => {
+    ui.openCrunWorkspace("models");
+    await tick();
+    assert.equal(requests.some(request => request.path === "/crun-next/models"), true);
+    const panel = document.getElementById("crun-panel-models");
+    assert.equal(all(panel).some(item => item.textContent === "Test Image"), true);
+    const search = all(panel).find(item => item.attributes["aria-label"] === "Search model catalog");
+    search.value = "aspect_ratio";
+    await search.trigger("input");
+    assert.equal(all(panel).some(item => item.textContent === "Test Video"), false);
+    await all(panel).find(item => item.textContent === "Inspect inputs").trigger("click");
+    const schema = all(panel).find(item => item.attributes["aria-label"] === "Documented model input schema");
+    assert.deepEqual(JSON.parse(schema.value).required, ["prompt"]);
+    await button("Refresh public model definitions").trigger("click");
+    assert.equal(requests.at(-1).path, "/crun-next/models/refresh");
+    assert.equal(requests.at(-1).method, "POST");
+    await button("Close").trigger("click");
 });
 
 test("launcher setup does not contact CRUN or the local backend", () => {

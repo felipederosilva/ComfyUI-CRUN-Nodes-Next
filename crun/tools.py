@@ -1,39 +1,52 @@
-"""Curated CRUN AI Tools research index, not executable generation nodes."""
+"""AI Tools metadata drawn from the same local catalog as the Comfy nodes.
+
+This workspace index is read-only. A documented node is not proof of account
+entitlement, upstream availability, or a successfully tested paid operation.
+"""
 
 from __future__ import annotations
 
 from copy import deepcopy
+from typing import Any
+
+from .catalog import list_catalog
 
 
-_TOOLS = (
-    ("image-upscale", "Image Upscale", "Image / Enhance", "Enlarge and enhance an image with model-specific scale and cleanup controls."),
-    ("image-upscale-pro", "Image Upscale Pro", "Image / Enhance", "Advanced image restoration and enlargement; parameters await integration validation."),
-    ("image-expand", "Image Expand", "Image / Reframe", "Outpaint a canvas or extend selected sides to prepare alternate compositions."),
-    ("image-background-remove", "Background Remove", "Image / Cutout", "Create a subject cutout from an image for compositing workflows."),
-    ("image-inpaint", "Image Inpaint", "Image / Repair", "Repair a selected mask or rectangle rather than regenerating the whole image."),
-    ("image-colorization", "Image Colorization", "Image / Restore", "Add color to monochrome images with a dedicated restoration operation."),
-    ("image-background-regeneration", "Background Regeneration", "Image / Composite", "Replace a scene background using a description, color, or reference image."),
-    ("image-headshot", "Headshot", "Image / Portrait", "Prepare a professional-looking portrait using an authorized subject reference."),
-    ("video-enhance", "Video Enhance", "Video / Enhance", "Enhance a clip with model-specific quality, resolution, and frame-rate controls."),
-)
+def list_tools(snapshot: dict[str, Any] | None = None) -> list[dict[str, Any]]:
+    """List every documented tool, without querying CRUN or reading credentials.
 
-
-def list_tools() -> list[dict[str, str]]:
-    """Return fresh planned-feature cards; none of these cards executes a tool.
-
-    Entries were discovered in CRUN's published docs index on 2026-10-25. This
-    curated index is not a live entitlement/catalog query and may become stale.
-    Watermark-removal services are deliberately not prioritized; future adapters
-    must require users to hold rights to the media and intended modification.
+    Tool controls are available through model-specific Comfy nodes in prepare
+    mode by default. No operation can be submitted by these metadata cards.
+    Rights-sensitive operations retain an explicit authorized-use reminder.
     """
-    return deepcopy([
-        {
+    catalog = list_catalog() if snapshot is None else snapshot
+    tools = []
+    for entry in catalog.get("entries", []):
+        if entry.get("kind") != "tool":
+            continue
+        identifier = str(entry.get("id") or "")
+        model = str(entry.get("model") or "")
+        title = str(entry.get("title") or model or identifier)
+        provider = str(entry.get("provider") or "CRUN")
+        schema = deepcopy(entry.get("inputs") or entry.get("input_schema") or {})
+        description = str(schema.get("description") or "Inspect this tool's documented inputs in its model-specific Comfy node.")
+        rights_sensitive = "face-swap" in model or "watermark" in model
+        tools.append({
             "id": identifier,
-            "name": name,
-            "category": category,
+            "model": model,
+            "name": title,
+            "provider": provider,
+            "category": str(entry.get("group") or "AI Tools"),
             "description": description,
-            "documentation_url": f"https://docs.crun.ai/ai-tools/{identifier}",
-            "status": "planned",
-        }
-        for identifier, name, category, description in _TOOLS
-    ])
+            "documentation_url": str(entry.get("documentation_url") or ""),
+            "status": "node_available",
+            "availability": str(entry.get("availability") or "documented_not_account_verified"),
+            "node_menu": f"CRUN Next/AI Tools/{provider}",
+            "node_display_name": "CRUN • " + title,
+            "default_mode": "prepare",
+            "workspace_execution_enabled": False,
+            "input_schema": schema,
+            "rights_sensitive": rights_sensitive,
+            "usage_note": "Use only media, likenesses and modifications you are authorized to use." if rights_sensitive else "Paid execution requires explicit enablement in the corresponding Comfy node.",
+        })
+    return tools

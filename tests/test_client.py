@@ -75,6 +75,17 @@ class ClientTests(unittest.TestCase):
         client, _ = self.client([{"key": "example"}])
         self.assertEqual(client.list_effects("kling")["total"], 1)
 
+    def test_effects_reads_all_pages_and_rejects_repeated_pages(self):
+        from unittest.mock import patch
+        client, _ = self.client({})
+        pages = [{"total": 2, "templates": [{"key": "a"}]}, {"total": 2, "templates": [{"key": "b"}]}]
+        with patch.object(client, "_request", side_effect=pages) as request:
+            self.assertEqual(len(client.list_effects("kling")["templates"]), 2)
+            self.assertEqual(request.call_args_list[1].kwargs["params"]["page"], 2)
+        with patch.object(client, "_request", return_value=pages[0]):
+            with self.assertRaises(CRUNError):
+                client.list_effects("kling")
+
     def test_invalid_provider_no_network(self):
         client, session = self.client({})
         with self.assertRaises(CRUNError):
@@ -89,7 +100,33 @@ class ClientTests(unittest.TestCase):
         self.assertTrue(args[1].endswith("/estimate-credits"))
         self.assertEqual(kwargs["json"]["model"], "example/model")
         self.assertNotIn("callback_url", kwargs["json"])
-        self.assertFalse(hasattr(client, "create_task"))
+        self.assertEqual(len(session.calls), 1)
+        self.assertFalse(any(call[0][1].endswith("/CreateTask") for call in session.calls))
+
+    def test_live_llm_inventory_uses_openai_shape_and_fixed_host(self):
+        payload = {"object": "list", "data": [{"id": "test/chat"}]}
+        client, session = self.client(body=payload)
+        self.assertEqual(client.list_models(), payload)
+        self.assertEqual(session.calls[0][0], ("GET", API_BASE + "/api/v1/models"))
+        self.assertFalse(session.calls[0][1]["allow_redirects"])
+
+    def test_submission_returns_id_once(self):
+        client, session = self.client({"task_id": "fixture_task"})
+        self.assertEqual(client.create_task("test/model", {"prompt": "Fictional"}), "fixture_task")
+        self.assertEqual(len(session.calls), 1)
+        self.assertTrue(session.calls[0][0][1].endswith("/CreateTask"))
+
+    def test_ambiguous_submission_never_retries_or_suggests_resubmit(self):
+        for response in [requests.Timeout("PRIVATE"), Response({}, 500), Response({}, 502), Response({"code": 500, "data": {}}), Response(ValueError("PRIVATE"))]:
+            with self.subTest(response=type(response).__name__):
+                session = Session(response)
+                client = CRUNClient("test-key", session)
+                with self.assertRaises(CRUNError) as raised:
+                    client.create_task("test/model", {})
+                self.assertIn("unknown", str(raised.exception))
+                self.assertIn("Logs", str(raised.exception))
+                self.assertNotIn("PRIVATE", str(raised.exception))
+                self.assertEqual(len(session.calls), 1)
 
     def test_invalid_estimate(self):
         for data in [{"credits": 1}, {"credits": 1, "estimated": "yes"}, {"credits": -3, "estimated": False}]:

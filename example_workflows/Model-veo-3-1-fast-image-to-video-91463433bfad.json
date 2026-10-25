@@ -1,0 +1,179 @@
+{
+  "last_node_id": 2,
+  "last_link_id": 0,
+  "nodes": [
+    {
+      "id": 1,
+      "type": "CRUN_Next_google_veo3_1_fast_i2v_91463433bfad",
+      "pos": [
+        570,
+        120
+      ],
+      "size": [
+        500,
+        622
+      ],
+      "flags": {},
+      "order": 0,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "crun_mode",
+          "type": "COMBO",
+          "widget": {
+            "name": "crun_mode"
+          },
+          "link": null,
+          "slot_index": 0
+        },
+        {
+          "name": "crun_allow_paid_generation",
+          "type": "BOOLEAN",
+          "widget": {
+            "name": "crun_allow_paid_generation"
+          },
+          "link": null,
+          "slot_index": 1
+        },
+        {
+          "name": "crun_max_credits",
+          "type": "FLOAT",
+          "widget": {
+            "name": "crun_max_credits"
+          },
+          "link": null,
+          "slot_index": 2
+        },
+        {
+          "name": "prompt",
+          "type": "STRING",
+          "widget": {
+            "name": "prompt"
+          },
+          "link": null,
+          "slot_index": 3
+        },
+        {
+          "name": "img_urls",
+          "type": "STRING",
+          "widget": {
+            "name": "img_urls"
+          },
+          "link": null,
+          "slot_index": 4
+        },
+        {
+          "name": "duration",
+          "type": "COMBO",
+          "widget": {
+            "name": "duration"
+          },
+          "link": null,
+          "slot_index": 5
+        },
+        {
+          "name": "resolution",
+          "type": "COMBO",
+          "widget": {
+            "name": "resolution"
+          },
+          "link": null,
+          "slot_index": 6
+        },
+        {
+          "name": "translate_prompt",
+          "type": "BOOLEAN",
+          "widget": {
+            "name": "translate_prompt"
+          },
+          "link": null,
+          "slot_index": 7
+        },
+        {
+          "name": "aspect_ratio",
+          "type": "COMBO",
+          "widget": {
+            "name": "aspect_ratio"
+          },
+          "link": null,
+          "slot_index": 8
+        }
+      ],
+      "outputs": [
+        {
+          "name": "result_json",
+          "type": "STRING",
+          "links": null,
+          "slot_index": 0
+        },
+        {
+          "name": "task_id",
+          "type": "STRING",
+          "links": null,
+          "slot_index": 1
+        },
+        {
+          "name": "credits",
+          "type": "FLOAT",
+          "links": null,
+          "slot_index": 2
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "CRUN_Next_google_veo3_1_fast_i2v_91463433bfad"
+      },
+      "widgets_values": [
+        "prepare",
+        false,
+        0.0,
+        "",
+        "[]",
+        "8",
+        "720p",
+        true,
+        "16:9"
+      ],
+      "title": "CRUN • Veo 3.1 Fast - Image to Video"
+    },
+    {
+      "id": 2,
+      "type": "Note",
+      "pos": [
+        50,
+        120
+      ],
+      "size": [
+        460,
+        480
+      ],
+      "flags": {},
+      "order": 1,
+      "mode": 0,
+      "properties": {},
+      "widgets_values": [
+        "CRUN NEXT — SAFE START\n\nThis workflow defaults to PREPARE: no API request, upload or charge.\nEnter your API key only through Settings > CRUN Next, never in a workflow.\nFill the model-specific fields. Arrays/objects use JSON. Media references currently need public HTTPS URLs.\nESTIMATE requests a quote without generation. GENERATE requires explicit paid permission and a positive maximum-credit ceiling.\nDo not share private media links when publishing this workflow.\n\nOption: Veo 3.1 Fast - Image to Video\nModel: google/veo3-1-fast-i2v\nDocumentation: https://docs.crun.ai/models/google/veo-3-1-fast-image-to-video\n"
+      ],
+      "color": "#263341",
+      "bgcolor": "#17232d"
+    }
+  ],
+  "links": [],
+  "groups": [],
+  "config": {},
+  "extra": {
+    "ds": {
+      "scale": 0.8,
+      "offset": [
+        30,
+        30
+      ]
+    },
+    "crun_next": {
+      "entry_id": "crun-9c7e34bd52a038703651",
+      "model": "google/veo3-1-fast-i2v",
+      "default_mode": "prepare",
+      "generation_tested": false
+    }
+  },
+  "version": 0.4
+}

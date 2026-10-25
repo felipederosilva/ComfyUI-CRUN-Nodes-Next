@@ -1,0 +1,259 @@
+{
+  "last_node_id": 2,
+  "last_link_id": 0,
+  "nodes": [
+    {
+      "id": 1,
+      "type": "CRUN_Next_claude_opus_4_6_lite_10a3380d036c",
+      "pos": [
+        570,
+        120
+      ],
+      "size": [
+        500,
+        1006
+      ],
+      "flags": {},
+      "order": 0,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "crun_mode",
+          "type": "COMBO",
+          "widget": {
+            "name": "crun_mode"
+          },
+          "link": null,
+          "slot_index": 0
+        },
+        {
+          "name": "crun_allow_paid_generation",
+          "type": "BOOLEAN",
+          "widget": {
+            "name": "crun_allow_paid_generation"
+          },
+          "link": null,
+          "slot_index": 1
+        },
+        {
+          "name": "crun_max_credits",
+          "type": "FLOAT",
+          "widget": {
+            "name": "crun_max_credits"
+          },
+          "link": null,
+          "slot_index": 2
+        },
+        {
+          "name": "messages",
+          "type": "STRING",
+          "widget": {
+            "name": "messages"
+          },
+          "link": null,
+          "slot_index": 3
+        },
+        {
+          "name": "temperature",
+          "type": "FLOAT",
+          "widget": {
+            "name": "temperature"
+          },
+          "link": null,
+          "slot_index": 4
+        },
+        {
+          "name": "top_p",
+          "type": "FLOAT",
+          "widget": {
+            "name": "top_p"
+          },
+          "link": null,
+          "slot_index": 5
+        },
+        {
+          "name": "n",
+          "type": "INT",
+          "widget": {
+            "name": "n"
+          },
+          "link": null,
+          "slot_index": 6
+        },
+        {
+          "name": "stop",
+          "type": "STRING",
+          "widget": {
+            "name": "stop"
+          },
+          "link": null,
+          "slot_index": 7
+        },
+        {
+          "name": "max_tokens",
+          "type": "INT",
+          "widget": {
+            "name": "max_tokens"
+          },
+          "link": null,
+          "slot_index": 8
+        },
+        {
+          "name": "max_completion_tokens",
+          "type": "INT",
+          "widget": {
+            "name": "max_completion_tokens"
+          },
+          "link": null,
+          "slot_index": 9
+        },
+        {
+          "name": "presence_penalty",
+          "type": "FLOAT",
+          "widget": {
+            "name": "presence_penalty"
+          },
+          "link": null,
+          "slot_index": 10
+        },
+        {
+          "name": "frequency_penalty",
+          "type": "FLOAT",
+          "widget": {
+            "name": "frequency_penalty"
+          },
+          "link": null,
+          "slot_index": 11
+        },
+        {
+          "name": "user",
+          "type": "STRING",
+          "widget": {
+            "name": "user"
+          },
+          "link": null,
+          "slot_index": 12
+        },
+        {
+          "name": "stream_options",
+          "type": "STRING",
+          "widget": {
+            "name": "stream_options"
+          },
+          "link": null,
+          "slot_index": 13
+        },
+        {
+          "name": "response_format",
+          "type": "STRING",
+          "widget": {
+            "name": "response_format"
+          },
+          "link": null,
+          "slot_index": 14
+        },
+        {
+          "name": "tools",
+          "type": "STRING",
+          "widget": {
+            "name": "tools"
+          },
+          "link": null,
+          "slot_index": 15
+        },
+        {
+          "name": "tool_choice",
+          "type": "STRING",
+          "widget": {
+            "name": "tool_choice"
+          },
+          "link": null,
+          "slot_index": 16
+        }
+      ],
+      "outputs": [
+        {
+          "name": "result_json",
+          "type": "STRING",
+          "links": null,
+          "slot_index": 0
+        },
+        {
+          "name": "task_id",
+          "type": "STRING",
+          "links": null,
+          "slot_index": 1
+        },
+        {
+          "name": "credits",
+          "type": "FLOAT",
+          "links": null,
+          "slot_index": 2
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "CRUN_Next_claude_opus_4_6_lite_10a3380d036c"
+      },
+      "widgets_values": [
+        "prepare",
+        false,
+        0.0,
+        "[]",
+        0.0,
+        0.0,
+        1,
+        "",
+        1,
+        1,
+        -2.0,
+        -2.0,
+        "",
+        "{}",
+        "{}",
+        "[]",
+        ""
+      ],
+      "title": "CRUN • claude-opus-4-6-lite"
+    },
+    {
+      "id": 2,
+      "type": "Note",
+      "pos": [
+        50,
+        120
+      ],
+      "size": [
+        460,
+        480
+      ],
+      "flags": {},
+      "order": 1,
+      "mode": 0,
+      "properties": {},
+      "widgets_values": [
+        "CRUN NEXT — SAFE START\n\nThis workflow defaults to PREPARE: no API request, upload or charge.\nEnter your API key only through Settings > CRUN Next, never in a workflow.\nFill the model-specific fields. Arrays/objects use JSON. Media references currently need public HTTPS URLs.\nESTIMATE requests a quote without generation. GENERATE requires explicit paid permission and a positive maximum-credit ceiling.\nDo not share private media links when publishing this workflow.\n\nOption: claude-opus-4-6-lite\nModel: claude-opus-4-6-lite\nDocumentation: https://docs.crun.ai/models/llm-list\n\nThis operation's generation protocol is not enabled yet. PREPARE remains available; do not interpret this template as tested execution.\n"
+      ],
+      "color": "#263341",
+      "bgcolor": "#17232d"
+    }
+  ],
+  "links": [],
+  "groups": [],
+  "config": {},
+  "extra": {
+    "ds": {
+      "scale": 0.8,
+      "offset": [
+        30,
+        30
+      ]
+    },
+    "crun_next": {
+      "entry_id": "crun-30cfd73d47b90b085533",
+      "model": "claude-opus-4-6-lite",
+      "default_mode": "prepare",
+      "generation_tested": false
+    }
+  },
+  "version": 0.4
+}

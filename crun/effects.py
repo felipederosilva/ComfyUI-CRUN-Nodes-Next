@@ -114,6 +114,7 @@ def normalize_catalog(provider: str, payload: Any) -> list[dict[str, Any]]:
     provider = _provider(provider)
     cards: list[dict[str, Any]] = []
     seen: set[str] = set()
+    by_id: dict[str, dict[str, Any]] = {}
     for entry in _rows(payload):
         if provider == "bytedance":
             identifier = _text(entry.get("TemplateId"))
@@ -143,11 +144,24 @@ def normalize_catalog(provider: str, payload: Any) -> list[dict[str, Any]]:
             # are defensive until a live authenticated catalog is inspected.
             identifier = _text(entry.get("template")) or _text(entry.get("template_id")) or _text(entry.get("id"))
             name = _text(entry.get("name")) or _text(entry.get("title"))
-            category = _text(entry.get("category"))
+            category = _text(entry.get("category_name")) or _text(entry.get("category"))
             cover = entry.get("cover_url", entry.get("cover"))
-            preview = entry.get("video_url", entry.get("preview_url"))
+            preview = entry.get("video_url", entry.get("preview_url", entry.get("video")))
             credits = _number(entry.get("credits", entry.get("credit")))
-        if not identifier or identifier in seen:
+        if not identifier:
+            continue
+        if identifier in seen:
+            if provider == "vidu":
+                existing = by_id[identifier]
+                variants = existing["raw"].get("catalog_variants")
+                if not isinstance(variants, list):
+                    variants = [deepcopy(existing["raw"])]
+                    existing["raw"]["catalog_variants"] = variants
+                variants.append(deepcopy(entry))
+                # Avoid presenting the first record's price as universal if the
+                # provider ever returns different prices for a repeated ID.
+                if credits != existing["credits"]:
+                    existing["credits"] = None
             continue
         seen.add(identifier)
         cards.append({
@@ -161,6 +175,7 @@ def normalize_catalog(provider: str, payload: Any) -> list[dict[str, Any]]:
             "required_images": _first_explicit_count(entry),
             "raw": deepcopy(entry),
         })
+        by_id[identifier] = cards[-1]
     return cards
 
 
@@ -200,7 +215,7 @@ def build_effect_plan(
         raise ValueError("Required image count must be a positive integer.")
     if required is not None and len(urls) != required:
         raise ValueError(f"This effect requires exactly {required} image reference(s).")
-    warnings = ["Draft only. Paid Effects execution is not implemented in this release."]
+    warnings = ["Draft only. This utility does not execute Effects; use the individual template node for an explicitly armed submission."]
     if not urls:
         warnings.append("Add image references before estimating or running this effect.")
     if required is None:

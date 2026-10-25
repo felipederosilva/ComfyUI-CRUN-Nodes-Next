@@ -8,16 +8,20 @@ from __future__ import annotations
 
 import base64
 import ctypes
+import hashlib
 import json
+import math
 import os
 import tempfile
 import threading
+import time
 from pathlib import Path
 from typing import Any
 
 _IS_WINDOWS = os.name == "nt"
 _LOCK = threading.RLock()
 _FILENAME = "credentials.json"
+_STATUS_FILENAME = "status.json"
 
 
 class SettingsError(RuntimeError):
@@ -133,6 +137,82 @@ def get_api_key() -> str:
         return _environment_key() or _read_saved()
 
 
+def status_path() -> Path:
+    """Connection receipts contain no API key and do not change credential format."""
+    return settings_path().with_name(_STATUS_FILENAME)
+
+
+def _key_fingerprint(key: str) -> str:
+    return hashlib.sha256(key.encode("utf-8")).hexdigest() if key else ""
+
+
+def _connection_status(key: str) -> dict[str, Any]:
+    empty = {"validation_state": "saved" if key else "not_configured",
+             "last_balance": None, "checked_at": 0, "balance_checked_at": 0}
+    path = status_path()
+    try:
+        if not path.exists() or path.stat().st_size > 16 * 1024:
+            return empty
+        payload = json.loads(path.read_text(encoding="utf-8"))
+        if payload.get("schema_version") != 1 or payload.get("credential_fingerprint") != _key_fingerprint(key):
+            return empty
+        state = payload.get("validation_state")
+        if state not in {"connected", "invalid", "unreachable", "error", "saved", "not_configured"}:
+            return empty
+        balance = payload.get("last_balance")
+        if balance is not None and (isinstance(balance, bool) or not isinstance(balance, (int, float)) or not math.isfinite(balance) or balance < 0):
+            return empty
+        checked_at = payload.get("checked_at", 0)
+        balance_checked_at = payload.get("balance_checked_at", 0)
+        if any(isinstance(value, bool) or not isinstance(value, int) or value < 0 for value in (checked_at, balance_checked_at)):
+            return empty
+        return {"validation_state": state, "last_balance": balance,
+                "checked_at": checked_at, "balance_checked_at": balance_checked_at}
+    except (OSError, ValueError, TypeError, AttributeError):
+        return empty
+
+
+def _clear_connection_status() -> None:
+    try:
+        status_path().unlink(missing_ok=True)
+    except OSError:
+        # A changed key also invalidates receipts through its fingerprint.
+        pass
+
+
+def record_connection(status: str, balance: float | None = None) -> None:
+    """Persist a safe historical check, never a live-status promise or API key."""
+    if status not in {"connected", "invalid", "unreachable", "error", "saved", "not_configured"}:
+        raise SettingsError("Unknown CRUN connection state.")
+    if balance is not None:
+        if isinstance(balance, bool) or not isinstance(balance, (float, int)) or not math.isfinite(balance) or balance < 0:
+            raise SettingsError("Invalid CRUN account balance.")
+    with _LOCK:
+        key = get_api_key()
+        previous = _connection_status(key)
+        now = int(time.time())
+        payload = {"schema_version": 1, "credential_fingerprint": _key_fingerprint(key),
+                   "validation_state": status, "last_balance": balance if balance is not None else previous["last_balance"],
+                   "checked_at": now, "balance_checked_at": now if balance is not None else previous["balance_checked_at"]}
+        temporary: str | None = None
+        try:
+            path = status_path()
+            path.parent.mkdir(parents=True, exist_ok=True, mode=0o700)
+            descriptor, temporary = tempfile.mkstemp(prefix=".crun-status-", suffix=".tmp", dir=path.parent)
+            os.chmod(temporary, 0o600)
+            with os.fdopen(descriptor, "w", encoding="utf-8") as stream:
+                json.dump(payload, stream, ensure_ascii=False)
+                stream.flush()
+                os.fsync(stream.fileno())
+            os.replace(temporary, path)
+            os.chmod(path, 0o600)
+        except Exception:
+            raise SettingsError("Could not save the CRUN connection receipt.") from None
+        finally:
+            if temporary and Path(temporary).exists():
+                Path(temporary).unlink(missing_ok=True)
+
+
 def save_api_key(value: str) -> None:
     """Save atomically. On Windows encryption must succeed before file creation."""
     key = _validate_key(value)
@@ -142,6 +222,10 @@ def save_api_key(value: str) -> None:
         credential = {"format": "owner-file", "data": key}
     payload = json.dumps({"schema_version": 1, "credential": credential}, ensure_ascii=False)
     with _LOCK:
+        try:
+            previous_key = _read_saved()
+        except SettingsError:
+            previous_key = ""
         temporary: str | None = None
         try:
             path = settings_path()
@@ -154,6 +238,8 @@ def save_api_key(value: str) -> None:
                 os.fsync(stream.fileno())
             os.replace(temporary, path)
             os.chmod(path, 0o600)
+            if key != previous_key:
+                _clear_connection_status()
         except Exception:
             raise SettingsError("Could not save the CRUN credential. Check access to the local user configuration directory.") from None
         finally:
@@ -166,6 +252,7 @@ def clear_api_key() -> None:
     with _LOCK:
         try:
             settings_path().unlink(missing_ok=True)
+            _clear_connection_status()
         except OSError:
             raise SettingsError("Could not remove the saved CRUN credential.") from None
 
@@ -180,7 +267,9 @@ def public_status() -> dict[str, Any]:
             source = "environment" if environment else ("saved" if key else "none")
             hint = "••••" + key[-4:] if len(key) >= 12 else ("••••" if key else "")
             return {"configured": bool(key), "source": source, "key_hint": hint,
-                    "storage": "Environment variable" if environment else storage}
+                    "storage": "Environment variable" if environment else storage,
+                    **_connection_status(key)}
         except SettingsError:
             return {"configured": False, "source": "none", "key_hint": "", "storage": storage,
+                    "validation_state": "not_configured", "last_balance": None, "checked_at": 0, "balance_checked_at": 0,
                     "error": "Saved or environment credential is unavailable. Re-enter a valid key."}

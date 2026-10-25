@@ -17,7 +17,7 @@ nodes = sys.modules[NAME + ".nodes"]
 
 class NodeTests(unittest.TestCase):
     def test_every_node_has_separate_namespace_and_no_key_widget(self):
-        self.assertEqual(len(nodes.NODE_CLASS_MAPPINGS), 7)
+        self.assertGreaterEqual(len(nodes.NODE_CLASS_MAPPINGS), 7)
         for name, klass in nodes.NODE_CLASS_MAPPINGS.items():
             self.assertTrue(name.startswith("CRUN_Next_"))
             self.assertTrue(callable(getattr(klass(), klass.FUNCTION)))
@@ -54,9 +54,9 @@ class NodeTests(unittest.TestCase):
         self.assertFalse(plan["execution_enabled"])
         self.assertFalse(plan["ready_to_submit"])
 
-    def test_tools_are_not_runnable(self):
+    def test_tools_catalog_is_metadata_for_prepare_default_nodes(self):
         output = nodes.CRUNToolsCatalog().check()["result"][0]
-        self.assertTrue(all(entry["status"] == "planned" for entry in json.loads(output)))
+        self.assertTrue(all(entry["status"] == "node_available" and entry["default_mode"] == "prepare" for entry in json.loads(output)))
 
 
 if __name__ == "__main__":

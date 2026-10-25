@@ -1,7 +1,7 @@
 [project]
 name = "crun-ai-nodes-next"
-version = "0.1.0"
-description = "Independent CRUN connection, Effects discovery and AI Tools foundations for ComfyUI."
+version = "0.2.0"
+description = "Independent schema-aware CRUN models, Effects, AI Tools and safe starter workflows for ComfyUI."
 readme = "README.md"
 requires-python = ">=3.10"
 license = { text = "MIT" }

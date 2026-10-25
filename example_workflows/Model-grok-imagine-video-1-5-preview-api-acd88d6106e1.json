@@ -1,0 +1,169 @@
+{
+  "last_node_id": 2,
+  "last_link_id": 0,
+  "nodes": [
+    {
+      "id": 1,
+      "type": "CRUN_Next_grok_imagine_video_1_5_preview_acd88d6106e1",
+      "pos": [
+        570,
+        120
+      ],
+      "size": [
+        500,
+        574
+      ],
+      "flags": {},
+      "order": 0,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "crun_mode",
+          "type": "COMBO",
+          "widget": {
+            "name": "crun_mode"
+          },
+          "link": null,
+          "slot_index": 0
+        },
+        {
+          "name": "crun_allow_paid_generation",
+          "type": "BOOLEAN",
+          "widget": {
+            "name": "crun_allow_paid_generation"
+          },
+          "link": null,
+          "slot_index": 1
+        },
+        {
+          "name": "crun_max_credits",
+          "type": "FLOAT",
+          "widget": {
+            "name": "crun_max_credits"
+          },
+          "link": null,
+          "slot_index": 2
+        },
+        {
+          "name": "prompt",
+          "type": "STRING",
+          "widget": {
+            "name": "prompt"
+          },
+          "link": null,
+          "slot_index": 3
+        },
+        {
+          "name": "img_urls",
+          "type": "STRING",
+          "widget": {
+            "name": "img_urls"
+          },
+          "link": null,
+          "slot_index": 4
+        },
+        {
+          "name": "aspect_ratio",
+          "type": "COMBO",
+          "widget": {
+            "name": "aspect_ratio"
+          },
+          "link": null,
+          "slot_index": 5
+        },
+        {
+          "name": "resolution",
+          "type": "COMBO",
+          "widget": {
+            "name": "resolution"
+          },
+          "link": null,
+          "slot_index": 6
+        },
+        {
+          "name": "duration",
+          "type": "INT",
+          "widget": {
+            "name": "duration"
+          },
+          "link": null,
+          "slot_index": 7
+        }
+      ],
+      "outputs": [
+        {
+          "name": "result_json",
+          "type": "STRING",
+          "links": null,
+          "slot_index": 0
+        },
+        {
+          "name": "task_id",
+          "type": "STRING",
+          "links": null,
+          "slot_index": 1
+        },
+        {
+          "name": "credits",
+          "type": "FLOAT",
+          "links": null,
+          "slot_index": 2
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "CRUN_Next_grok_imagine_video_1_5_preview_acd88d6106e1"
+      },
+      "widgets_values": [
+        "prepare",
+        false,
+        0.0,
+        "",
+        "[]",
+        "auto",
+        "480p",
+        6
+      ],
+      "title": "CRUN • Grok Imagine Video 1.5 Preview API"
+    },
+    {
+      "id": 2,
+      "type": "Note",
+      "pos": [
+        50,
+        120
+      ],
+      "size": [
+        460,
+        480
+      ],
+      "flags": {},
+      "order": 1,
+      "mode": 0,
+      "properties": {},
+      "widgets_values": [
+        "CRUN NEXT — SAFE START\n\nThis workflow defaults to PREPARE: no API request, upload or charge.\nEnter your API key only through Settings > CRUN Next, never in a workflow.\nFill the model-specific fields. Arrays/objects use JSON. Media references currently need public HTTPS URLs.\nESTIMATE requests a quote without generation. GENERATE requires explicit paid permission and a positive maximum-credit ceiling.\nDo not share private media links when publishing this workflow.\n\nOption: Grok Imagine Video 1.5 Preview API\nModel: grok-imagine-video-1.5-preview\nDocumentation: https://docs.crun.ai/models/grok-imagine/video-1-5-preview\n"
+      ],
+      "color": "#263341",
+      "bgcolor": "#17232d"
+    }
+  ],
+  "links": [],
+  "groups": [],
+  "config": {},
+  "extra": {
+    "ds": {
+      "scale": 0.8,
+      "offset": [
+        30,
+        30
+      ]
+    },
+    "crun_next": {
+      "entry_id": "crun-06c93cd271c7276b97f1",
+      "model": "grok-imagine-video-1.5-preview",
+      "default_mode": "prepare",
+      "generation_tested": false
+    }
+  },
+  "version": 0.4
+}
