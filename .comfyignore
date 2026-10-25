@@ -1,0 +1,9 @@
+.git/
+.github/
+tests/
+scripts/
+dist/
+__pycache__/
+*.pyc
+.env*
+DEVELOPMENT_CONTRACT.md
