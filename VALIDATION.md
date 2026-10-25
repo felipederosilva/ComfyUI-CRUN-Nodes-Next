@@ -23,10 +23,14 @@ Checked on Windows, 2026-10-25.
 - First-install helper tested against a temporary Comfy fixture; rejects an
   existing destination and a directory that is not a backend Comfy installation.
 
-## Pending publication checks
+## Publication and installation
 
-- First install into the user's actual custom_nodes directory.
-- Public GitHub CI (separate from local tests).
+- First-installed 23 allowlisted files into the actual Comfy Desktop custom_nodes
+  directory under a new ComfyUI-CRUN-Nodes-Next folder; no KIE files changed.
+- GitHub offline CI passed on Ubuntu and Windows for initial code commit 54b5b16:
+  https://github.com/felipederosilva/ComfyUI-CRUN-Nodes-Next/actions/runs/40228027516
+- Runtime ZIP also includes the two original workspace screenshots; no API key,
+  config file, cache, existing user data or Git history is distributed.
 
 ## Not checked / deliberately not implemented
 
