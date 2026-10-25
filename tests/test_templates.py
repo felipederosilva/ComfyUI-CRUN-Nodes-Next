@@ -23,7 +23,8 @@ class TemplateTests(unittest.TestCase):
         node = generated.make_node(entry)
         workflow = builder.workflow_for(entry, node, "CRUN • Sample")
         self.assertEqual(workflow["version"], 0.4)
-        self.assertEqual(workflow["links"], [])
+        self.assertTrue(all(link[5] == 'IMAGE' for link in workflow['links']))
+        self.assertTrue(any(node['type'] == 'LoadImage' for node in workflow['nodes']))
         graph_node = workflow["nodes"][0]
         self.assertEqual(graph_node["type"], generated.node_id_for(entry))
         self.assertEqual(graph_node["widgets_values"][:3], ["prepare", False, 0])

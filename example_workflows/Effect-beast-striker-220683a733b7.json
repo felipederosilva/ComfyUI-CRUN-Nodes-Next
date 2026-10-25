@@ -1,6 +1,6 @@
 {
-  "last_node_id": 2,
-  "last_link_id": 0,
+  "last_node_id": 3,
+  "last_link_id": 1,
   "nodes": [
     {
       "id": 1,
@@ -11,7 +11,7 @@
       ],
       "size": [
         500,
-        382
+        430
       ],
       "flags": {},
       "order": 0,
@@ -52,6 +52,21 @@
           },
           "link": null,
           "slot_index": 3
+        },
+        {
+          "name": "crun_allow_upload",
+          "type": "BOOLEAN",
+          "widget": {
+            "name": "crun_allow_upload"
+          },
+          "link": null,
+          "slot_index": 4
+        },
+        {
+          "name": "reference_images",
+          "type": "IMAGE",
+          "link": 1,
+          "slot_index": 5
         }
       ],
       "outputs": [
@@ -81,7 +96,8 @@
         "prepare",
         false,
         0.0,
-        "[]"
+        "[]",
+        false
       ],
       "title": "CRUN • Beast Striker"
     },
@@ -101,13 +117,62 @@
       "mode": 0,
       "properties": {},
       "widgets_values": [
-        "CRUN NEXT — SAFE START\n\nThis workflow defaults to PREPARE: no API request, upload or charge.\nEnter your API key only through Settings > CRUN Next, never in a workflow.\nFill the model-specific fields. Arrays/objects use JSON. Media references currently need public HTTPS URLs.\nESTIMATE requests a quote without generation. GENERATE requires explicit paid permission and a positive maximum-credit ceiling.\nDo not share private media links when publishing this workflow.\n\nOption: Beast Striker\nModel: kling/template\nDocumentation: https://docs.crun.ai/templates/kling-template\n\nEffects: the fixed template identifier belongs to this node. Preserve reference order; confirm any unknown slot counts in the provider instructions.\n"
+        "CRUN NEXT — SAFE START\n\nThis workflow defaults to PREPARE: no API request, upload or charge.\nEnter your API key only through Settings > CRUN Next, never in a workflow.\nConnect Load Image to native IMAGE references, or use Advanced URL fallbacks. Arrays/objects use JSON.\nPREPARE never uploads. Estimating connected images requires explicit upload permission; GENERATE also needs paid permission and a positive credit ceiling.\nDo not share private media links when publishing this workflow.\n\nOption: Beast Striker\nModel: kling/template\nDocumentation: https://docs.crun.ai/templates/kling-template\n\nEffects: the fixed template identifier belongs to this node. Preserve reference order; confirm any unknown slot counts in the provider instructions.\n"
       ],
       "color": "#263341",
       "bgcolor": "#17232d"
+    },
+    {
+      "id": 3,
+      "type": "LoadImage",
+      "pos": [
+        50,
+        650
+      ],
+      "size": [
+        390,
+        300
+      ],
+      "flags": {},
+      "order": 2,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "IMAGE",
+          "type": "IMAGE",
+          "links": [
+            1
+          ],
+          "slot_index": 0
+        },
+        {
+          "name": "MASK",
+          "type": "MASK",
+          "links": null,
+          "slot_index": 1
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "LoadImage"
+      },
+      "widgets_values": [
+        "",
+        "image"
+      ],
+      "title": "Choose reference images"
     }
   ],
-  "links": [],
+  "links": [
+    [
+      1,
+      3,
+      0,
+      1,
+      5,
+      "IMAGE"
+    ]
+  ],
   "groups": [],
   "config": {},
   "extra": {

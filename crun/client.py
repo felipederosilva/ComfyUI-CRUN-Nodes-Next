@@ -173,3 +173,29 @@ class CRUNClient:
         if not isinstance(data, dict) or not isinstance(data.get("task_id"), str) or not data["task_id"].strip():
             raise CRUNError("CRUN did not return a task ID. Check CRUN Logs before submitting again.")
         return data["task_id"]
+
+    def upload_bytes(self, data: bytes, *, mime_type: str = "image/png", extension: str = ".png") -> str:
+        """Upload PNG bytes through the documented CRUN presigned-PUT contract.
+
+        API credentials are sent only to the fixed CRUN API endpoint. A new,
+        credential-free session performs the storage PUT; neither redirects nor
+        automatic retries are used. This method never creates a generation task.
+        """
+        from .effects import _https_url
+
+        if mime_type != "image/png" or extension != ".png" or not isinstance(data, bytes) or not data.startswith(b"\x89PNG\r\n\x1a\n") or len(data) > 20 * 1024 * 1024:
+            raise CRUNError("Native upload expects a PNG image no larger than 20 MiB.")
+        ticket = self._request("GET", "/api/v1/client/files/upload-url", params={"content_type": mime_type, "ext": extension})
+        if not isinstance(ticket, dict) or not _https_url(ticket.get("file_url")) or not _https_url(ticket.get("presigned_url")):
+            raise CRUNError("CRUN returned an invalid public HTTPS upload destination.")
+        try:
+            with requests.Session() as storage:
+                storage.trust_env = False  # Do not attach netrc credentials to storage.
+                response = storage.request("PUT", ticket["presigned_url"], data=data,
+                                           headers={"Content-Type": mime_type},
+                                           timeout=(10, 120), allow_redirects=False)
+        except requests.RequestException:
+            raise CRUNError("Native image upload failed. No generation was submitted and no automatic retry was made.") from None
+        if not 200 <= response.status_code < 300:
+            raise CRUNError("Storage rejected the native image upload. No generation was submitted.", status=response.status_code)
+        return ticket["file_url"]

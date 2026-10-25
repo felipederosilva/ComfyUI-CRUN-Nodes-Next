@@ -1,0 +1,279 @@
+{
+  "last_node_id": 5,
+  "last_link_id": 3,
+  "nodes": [
+    {
+      "id": 1,
+      "type": "CRUN_Next_Family_MiniMax_H3_Reference_to_Video",
+      "pos": [
+        420,
+        120
+      ],
+      "size": [
+        500,
+        620
+      ],
+      "flags": {},
+      "order": 1,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "reference_images",
+          "type": "IMAGE",
+          "link": 1
+        }
+      ],
+      "outputs": [
+        {
+          "name": "result_json",
+          "type": "STRING",
+          "links": null,
+          "slot_index": 0
+        },
+        {
+          "name": "task_id",
+          "type": "STRING",
+          "links": [
+            2
+          ],
+          "slot_index": 1
+        },
+        {
+          "name": "credits",
+          "type": "FLOAT",
+          "links": null,
+          "slot_index": 2
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "CRUN_Next_Family_MiniMax_H3_Reference_to_Video"
+      },
+      "widgets_values": [
+        "H3",
+        "",
+        "768P",
+        "auto",
+        5,
+        false,
+        false,
+        "[]",
+        "[]",
+        "[]",
+        "prepare",
+        false,
+        false,
+        0.0
+      ],
+      "title": "CRUN • MiniMax H3 — Reference to Video"
+    },
+    {
+      "id": 2,
+      "type": "LoadImage",
+      "pos": [
+        30,
+        120
+      ],
+      "size": [
+        320,
+        300
+      ],
+      "flags": {},
+      "order": 0,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "IMAGE",
+          "type": "IMAGE",
+          "links": [
+            1
+          ],
+          "slot_index": 0
+        },
+        {
+          "name": "MASK",
+          "type": "MASK",
+          "links": null,
+          "slot_index": 1
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "LoadImage"
+      },
+      "widgets_values": [
+        "",
+        "image"
+      ],
+      "title": "Choose reference images"
+    },
+    {
+      "id": 3,
+      "type": "CRUN_Next_Get_Video_Result",
+      "pos": [
+        980,
+        120
+      ],
+      "size": [
+        350,
+        200
+      ],
+      "flags": {},
+      "order": 2,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "task_id",
+          "type": "STRING",
+          "link": 2
+        }
+      ],
+      "outputs": [
+        {
+          "name": "video",
+          "type": "VIDEO",
+          "links": [
+            3
+          ],
+          "slot_index": 0
+        },
+        {
+          "name": "url",
+          "type": "STRING",
+          "links": null,
+          "slot_index": 1
+        },
+        {
+          "name": "actual_credits",
+          "type": "FLOAT",
+          "links": null,
+          "slot_index": 2
+        },
+        {
+          "name": "task_id",
+          "type": "STRING",
+          "links": null,
+          "slot_index": 3
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "CRUN_Next_Get_Video_Result"
+      },
+      "widgets_values": [
+        0,
+        1200,
+        3.0
+      ]
+    },
+    {
+      "id": 4,
+      "type": "SaveVideo",
+      "pos": [
+        980,
+        370
+      ],
+      "size": [
+        460,
+        340
+      ],
+      "flags": {},
+      "order": 3,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "video",
+          "type": "VIDEO",
+          "link": 3
+        }
+      ],
+      "outputs": [
+        {
+          "name": "video",
+          "type": "VIDEO",
+          "links": null,
+          "slot_index": 0
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "SaveVideo"
+      },
+      "widgets_values": [
+        "video/CRUN",
+        "auto",
+        "auto"
+      ]
+    },
+    {
+      "id": 5,
+      "type": "Note",
+      "title": "Studio guide — expand for instructions",
+      "pos": [
+        30,
+        60
+      ],
+      "size": [
+        320,
+        580
+      ],
+      "flags": {
+        "collapsed": true
+      },
+      "order": 4,
+      "mode": 0,
+      "properties": {},
+      "widgets_values": [
+        "CRUN NEXT STUDIO — MiniMax H3 — Reference to Video\n\n1. Select a model version in the model dropdown. Only its supported controls are shown.\n2. Write the scene or edit instruction in prompt. Review the selected model's requirements.\n3. Choose your source image in each connected Load Image node. Connections are native Comfy IMAGE inputs, not URL text.\nThe reference_images socket accepts an IMAGE batch. Add an Image Batch node for multiple references; preserve their intended order and selected-model limits.\n\nSAFE START: crun_mode=prepare, upload permission=false, paid permission=false, maximum credits=0.\nPreparation runs locally and reports validation errors without uploads or provider charges.\nEstimating with connected images requires explicit upload permission. Uploading sends media to CRUN.\nGenerating additionally requires paid permission and a positive credit ceiling; inspect the fresh estimate first.\nNever put an API key in this graph. Configure it under Settings > CRUN Next.\n\nDefault model: minimax/h3-r2v\nreference_images: up to 9 image(s)\nDocumentation: https://docs.crun.ai/models/minimax/h3-reference-to-video\n\nAFTER SUBMISSION: Get Result polls this same task ID, saves the provider result locally and passes native media to Preview Image / Save Video.\nPrepare/estimate returns no task ID, so result retrieval and preview are blocked without network activity.\nA timeout preserves the task ID: rerun Get Result, never automatically regenerate.\nThis starter is not evidence of a completed or tested paid generation."
+      ],
+      "color": "#263341",
+      "bgcolor": "#17232d"
+    }
+  ],
+  "links": [
+    [
+      1,
+      2,
+      0,
+      1,
+      0,
+      "IMAGE"
+    ],
+    [
+      2,
+      1,
+      1,
+      3,
+      0,
+      "STRING"
+    ],
+    [
+      3,
+      3,
+      0,
+      4,
+      0,
+      "VIDEO"
+    ]
+  ],
+  "groups": [],
+  "config": {},
+  "extra": {
+    "ds": {
+      "scale": 0.8,
+      "offset": [
+        20,
+        20
+      ]
+    },
+    "crun_next": {
+      "family_id": "CRUN_Next_Family_MiniMax_H3_Reference_to_Video",
+      "model": "minimax/h3-r2v",
+      "default_mode": "prepare",
+      "native_inputs_connected": [
+        "reference_images"
+      ],
+      "result_node": "CRUN_Next_Get_Video_Result",
+      "preview_node": "SaveVideo",
+      "generation_tested": false
+    }
+  },
+  "version": 0.4
+}

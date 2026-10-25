@@ -38,6 +38,10 @@ def workflow_for(entry: dict, node_type: type, display_name: str) -> dict:
         for name, spec in definition.get(section, {}).items():
             type_value = spec[0]
             options = spec[1] if len(spec) > 1 and isinstance(spec[1], dict) else {}
+            if isinstance(type_value, str) and type_value in {"IMAGE", "MASK", "VIDEO", "AUDIO"}:
+                inputs.append({"name": name, "type": type_value, "link": None, "slot_index": slot})
+                slot += 1
+                continue
             if isinstance(type_value, list):
                 default = options.get("default", type_value[0] if type_value else "")
             else:
@@ -49,8 +53,8 @@ def workflow_for(entry: dict, node_type: type, display_name: str) -> dict:
         "CRUN NEXT — SAFE START\n\n"
         "This workflow defaults to PREPARE: no API request, upload or charge.\n"
         "Enter your API key only through Settings > CRUN Next, never in a workflow.\n"
-        "Fill the model-specific fields. Arrays/objects use JSON. Media references currently need public HTTPS URLs.\n"
-        "ESTIMATE requests a quote without generation. GENERATE requires explicit paid permission and a positive maximum-credit ceiling.\n"
+        "Connect Load Image to native IMAGE references, or use Advanced URL fallbacks. Arrays/objects use JSON.\n"
+        "PREPARE never uploads. Estimating connected images requires explicit upload permission; GENERATE also needs paid permission and a positive credit ceiling.\n"
         "Do not share private media links when publishing this workflow.\n\n"
         f"Option: {entry.get('title') or entry['model']}\n"
         f"Model: {entry['model']}\n"
@@ -60,7 +64,7 @@ def workflow_for(entry: dict, node_type: type, display_name: str) -> dict:
         note += "\nEffects: the fixed template identifier belongs to this node. Preserve reference order; confirm any unknown slot counts in the provider instructions.\n"
     if not entry.get("generation_supported", False):
         note += "\nThis operation's generation protocol is not enabled yet. PREPARE remains available; do not interpret this template as tested execution.\n"
-    return {
+    workflow = {
         "last_node_id": 2, "last_link_id": 0,
         "nodes": [
             {"id": 1, "type": node_id, "pos": [570, 120], "size": [500, max(340, 190 + len(widget_values) * 48)], "flags": {}, "order": 0, "mode": 0,
@@ -74,6 +78,23 @@ def workflow_for(entry: dict, node_type: type, display_name: str) -> dict:
         "extra": {"ds": {"scale": 0.8, "offset": [30, 30]}, "crun_next": {"entry_id": entry["id"], "model": entry["model"], "default_mode": "prepare", "generation_tested": False}},
         "version": 0.4,
     }
+    native = [item for item in inputs if item['type'] == 'IMAGE']
+    schema = entry.get('inputs') or entry.get('input_schema') or {}
+    minimum = (schema.get('properties', {}).get('img_urls') or schema.get('properties', {}).get('images') or {}).get('minItems', 0)
+    for source_index, target in enumerate(native):
+        if target['name'] in {'background_image', 'face_image'} or target['name'] == 'last_frame' and minimum < 2:
+            continue
+        identifier = max(node['id'] for node in workflow['nodes']) + 1
+        link = len(workflow['links']) + 1
+        target['link'] = link
+        load = {'id':identifier,'type':'LoadImage','pos':[50,650 + source_index*340],'size':[390,300],'flags':{},'order':source_index+2,'mode':0,
+                'inputs':[], 'outputs':[{'name':'IMAGE','type':'IMAGE','links':[link],'slot_index':0},{'name':'MASK','type':'MASK','links':None,'slot_index':1}],
+                'properties':{'Node name for S&R':'LoadImage'},'widgets_values':['','image'],'title':'Choose ' + target['name'].replace('_',' ')}
+        workflow['nodes'].append(load)
+        workflow['links'].append([link,identifier,0,1,target['slot_index'],'IMAGE'])
+    workflow['last_node_id'] = max(node['id'] for node in workflow['nodes'])
+    workflow['last_link_id'] = len(workflow['links'])
+    return workflow
 
 
 def build_templates(output: Path | None = None, entries: list[dict] | None = None) -> dict:
@@ -91,7 +112,7 @@ def build_templates(output: Path | None = None, entries: list[dict] | None = Non
         filename = prefix + "-" + _filename(entry)
         path = output / filename
         workflow = workflow_for(entry, classes[node_id], names[node_id])
-        path.write_text(json.dumps(workflow, ensure_ascii=False, indent=2, allow_nan=False) + "\n", encoding="utf-8")
+        path.write_text(json.dumps(workflow, ensure_ascii=False, indent=2, allow_nan=False) + "\n", encoding="utf-8", newline="\n")
         manifest_entries.append({"entry_id": entry["id"], "node_type": node_id, "model": entry["model"], "title": entry.get("title", entry["model"]), "group": group, "path": path.relative_to(output).as_posix(), "default_mode": "prepare", "generation_tested": False})
         if entry.get("effect_template_id"):
             raw = entry.get("effect_metadata", {}).get("raw", {})
@@ -115,7 +136,7 @@ def build_templates(output: Path | None = None, entries: list[dict] | None = Non
     if write_bundled_manifest:
         manifest_path = ROOT / "data" / "workflow_manifest.json"
         manifest_path.parent.mkdir(parents=True, exist_ok=True)
-        manifest_path.write_text(json.dumps(manifest, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+        manifest_path.write_text(json.dumps(manifest, ensure_ascii=False, indent=2) + "\n", encoding="utf-8", newline="\n")
     return manifest
 
 

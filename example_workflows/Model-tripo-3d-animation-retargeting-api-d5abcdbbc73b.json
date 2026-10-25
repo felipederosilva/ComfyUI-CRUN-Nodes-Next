@@ -151,7 +151,7 @@
       "mode": 0,
       "properties": {},
       "widgets_values": [
-        "CRUN NEXT — SAFE START\n\nThis workflow defaults to PREPARE: no API request, upload or charge.\nEnter your API key only through Settings > CRUN Next, never in a workflow.\nFill the model-specific fields. Arrays/objects use JSON. Media references currently need public HTTPS URLs.\nESTIMATE requests a quote without generation. GENERATE requires explicit paid permission and a positive maximum-credit ceiling.\nDo not share private media links when publishing this workflow.\n\nOption: Tripo 3D Animation Retargeting API\nModel: tripo-3d-animation\nDocumentation: https://docs.crun.ai/models/tripo/tripo-3d-animation\n"
+        "CRUN NEXT — SAFE START\n\nThis workflow defaults to PREPARE: no API request, upload or charge.\nEnter your API key only through Settings > CRUN Next, never in a workflow.\nConnect Load Image to native IMAGE references, or use Advanced URL fallbacks. Arrays/objects use JSON.\nPREPARE never uploads. Estimating connected images requires explicit upload permission; GENERATE also needs paid permission and a positive credit ceiling.\nDo not share private media links when publishing this workflow.\n\nOption: Tripo 3D Animation Retargeting API\nModel: tripo-3d-animation\nDocumentation: https://docs.crun.ai/models/tripo/tripo-3d-animation\n"
       ],
       "color": "#263341",
       "bgcolor": "#17232d"

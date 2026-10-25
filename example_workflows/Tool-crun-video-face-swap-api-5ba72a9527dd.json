@@ -11,7 +11,7 @@
       ],
       "size": [
         500,
-        478
+        526
       ],
       "flags": {},
       "order": 0,
@@ -70,6 +70,21 @@
           },
           "link": null,
           "slot_index": 5
+        },
+        {
+          "name": "crun_allow_upload",
+          "type": "BOOLEAN",
+          "widget": {
+            "name": "crun_allow_upload"
+          },
+          "link": null,
+          "slot_index": 6
+        },
+        {
+          "name": "face_image",
+          "type": "IMAGE",
+          "link": null,
+          "slot_index": 7
         }
       ],
       "outputs": [
@@ -101,6 +116,7 @@
         0.0,
         "",
         "",
+        false,
         false
       ],
       "title": "CRUN • Crun Video Face Swap API"
@@ -121,7 +137,7 @@
       "mode": 0,
       "properties": {},
       "widgets_values": [
-        "CRUN NEXT — SAFE START\n\nThis workflow defaults to PREPARE: no API request, upload or charge.\nEnter your API key only through Settings > CRUN Next, never in a workflow.\nFill the model-specific fields. Arrays/objects use JSON. Media references currently need public HTTPS URLs.\nESTIMATE requests a quote without generation. GENERATE requires explicit paid permission and a positive maximum-credit ceiling.\nDo not share private media links when publishing this workflow.\n\nOption: Crun Video Face Swap API\nModel: video-face-swap\nDocumentation: https://docs.crun.ai/ai-tools/face-swap/video-face-swap\n"
+        "CRUN NEXT — SAFE START\n\nThis workflow defaults to PREPARE: no API request, upload or charge.\nEnter your API key only through Settings > CRUN Next, never in a workflow.\nConnect Load Image to native IMAGE references, or use Advanced URL fallbacks. Arrays/objects use JSON.\nPREPARE never uploads. Estimating connected images requires explicit upload permission; GENERATE also needs paid permission and a positive credit ceiling.\nDo not share private media links when publishing this workflow.\n\nOption: Crun Video Face Swap API\nModel: video-face-swap\nDocumentation: https://docs.crun.ai/ai-tools/face-swap/video-face-swap\n"
       ],
       "color": "#263341",
       "bgcolor": "#17232d"

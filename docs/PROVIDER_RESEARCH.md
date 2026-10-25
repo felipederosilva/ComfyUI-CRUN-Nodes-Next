@@ -1,10 +1,12 @@
 # CRUN Effects and AI Tools research
 
 Research date: **2026-10-25**. This is an unofficial integration. The initial
-0.1 research below used public documentation. For 0.2, read-only authenticated
-balance, LLM inventory and complete Effects catalogs were checked. No media upload
-or paid generation was performed. Documentation and discovery do not prove that
-every operation executes successfully or is available to every account.
+0.1 research used public documentation. For 0.2, read-only authenticated balance,
+LLM inventory and complete Effects catalogs were checked. Version 0.3 adds native
+references, family dropdowns and existing-task result adapters. No real provider
+upload, estimate, paid generation or generated-media download was performed for
+0.3. Discovery and fake/local execution do not prove every operation works live
+or is available to every account.
 
 ## Effects: researched interfaces
 
@@ -15,9 +17,10 @@ every operation executes successfully or is available to every account.
 | Vidu | `GET /api/v1/client/job/vidu-templates` | `model: vidu/template`; input uses `template`, `images`, and optional supported options such as `bgm` |
 
 All three documented generation examples use the shared `CreateTask` endpoint
-with `x-api-key`. Version 0.2 provides explicitly armed single-task submission
-through individual nodes, with offline preparation as the default. Native media
-upload, automatic polling and decoded result outputs remain unimplemented.
+with `x-api-key`. Version 0.3 preserves single-task submission with separate upload
+and paid permissions. Known image fields can receive native Comfy connections;
+result adapters poll an existing ID and return native IMAGE/VIDEO media. These
+provider paths remain unverified with an actual paid round trip.
 
 Sources:
 
@@ -36,11 +39,11 @@ uses `TemplateId`, **not** the preview `MediaId`. `InputNum` is explicit input-c
 metadata. `ConsumeItems` preserves resolution-specific costs rather than one
 misleading universal price. English names fall back to the original title.
 
-The Vidu generation definition was readable, but the Vidu catalog page could not
-be retrieved by the research browser. Its adapter is therefore defensive, not a
-validated exhaustive catalog mapping. A live read-only catalog check is required
-after the user adds their key. Unknown metadata stays unknown; it is not filled
-with guessed values. The published docs' sample totals are not live counts.
+The initial browser could not retrieve the Vidu catalog page; authenticated,
+paginated read-only discovery later returned 521 source rows representing 496
+unique template IDs. Duplicate category appearances are retained in metadata and
+map to the same fixed-template workflow. Unknown image counts remain unknown;
+published sample totals and prose instructions are not machine-verifiable limits.
 
 Catalog names/instructions are untrusted text. Previews load only by explicit
 user action; never interpret provider text as HTML. Preview URL checks reject
@@ -53,13 +56,38 @@ provider-specific examples, while warnings identify missing references, unknown
 slot counts and resolution validation still required. It must never be confused
 with a completed task, cost quote, or provider-accepted request.
 
-## AI Tools: initial research and 0.2 progress
+## Model families and native media — 0.3
+
+Creative tasks group models by family and compatible operation, such as Seedance
+Image to Video, Text to Video and Reference to Video. Each node's version dropdown
+retains the exact selected wire ID and schema. A union defines stable graph
+connectors, while per-model profiles govern active controls, choices, numeric
+bounds and image counts. Unsupported connected references are rejected, not dropped.
+
+Recognized simple image fields map to named IMAGE/MASK roles: first/last frame,
+reference batch, source image, mask or a known auxiliary image. Native batches
+retain their order. Advanced HTTPS/JSON inputs remain available; nested face-swap
+and 3D structures and native VIDEO/AUDIO upload need further adapters.
+
+The [documented upload endpoint](https://docs.crun.ai/common-api/file-upload) accepts
+multipart media and returns temporary URLs, documented as lasting one hour. Native
+upload requires explicit permission, including before a quote uses connected
+images. A memory-only 30-minute cache is scoped to credential and content. Prepare
+does not send media. Upload permission never authorizes paid task submission.
+
+Result adapters inspect the same task through the [task contract](https://docs.crun.ai/models/common/get-task-info),
+poll within a bounded timeout, download one selected result without credential
+headers, retain a local copy in output/CRUNResults and expose IMAGE/VIDEO for Comfy
+preview/save. They cannot create a replacement job after a timeout.
+
+## AI Tools: current progress
 
 The [official documentation index](https://docs.crun.ai/llms.txt) lists dedicated
 image and video utilities. The 0.1 skeleton included a curated planned-feature
-index. In 0.2, all 18 documented tool operations have schema-aware Nodes-menu
-entries and workflow starters. Their workspace cards inspect inputs; supported
-media-task nodes can submit only through the explicit generation gate.
+index. All 18 documented tool operations now have schema-aware Nodes-menu entries
+and workflow starters. Recognized image/mask roles accept native references.
+Their workspace cards inspect inputs; supported media-task nodes submit only
+through explicit upload/generation permissions.
 
 First candidates are image upscale/Pro, expansion, background removal, inpainting,
 colorization, background regeneration, headshots and video enhancement. Relevant
@@ -67,9 +95,9 @@ definitions include [upscale](https://docs.crun.ai/ai-tools/image-upscale),
 [expand](https://docs.crun.ai/ai-tools/image-expand),
 [background removal](https://docs.crun.ai/ai-tools/image-background-remove), and
 [video enhancement](https://docs.crun.ai/ai-tools/video-enhance). Each tool still
-needs schema validation, native media adapters, result handling and an explicitly
-authorized smoke test. Watermark removal is not prioritized; any future support
-must respect ownership, licenses and attribution rights.
+needs representative authorized live validation; implemented schema/media/result
+adapters are not evidence that every tool works end to end. Likeness and watermark
+operations require authorization for the source material and intended changes.
 
 ## Distinctive product direction
 
@@ -85,7 +113,8 @@ must respect ownership, licenses and attribution rights.
 5. **Reusable recipes:** preserve template choice, ordered reference roles and
    finishing settings, without embedding API keys in saved workflows.
 
-The first release provides the research and read-only foundation, not all five
-finished experiences. It does not copy CRUN's branding, website media, or claim
+The current release adds practical workflow adapters to the research and discovery
+foundation; the proposed experiences still need real editorial validation. It
+does not copy CRUN's branding, website media, or claim
 official affiliation. Before distributing any provider-owned preview bundles or
 templates, verify rights rather than assuming documentation implies permission.

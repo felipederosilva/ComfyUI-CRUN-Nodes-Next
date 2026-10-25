@@ -27,16 +27,17 @@ MODES = ["prepare", "estimate", "generate"]
 CONTROL_MODE = "crun_mode"
 CONTROL_ALLOW = "crun_allow_paid_generation"
 CONTROL_BUDGET = "crun_max_credits"
-_CONTROLS = {CONTROL_MODE, CONTROL_ALLOW, CONTROL_BUDGET}
+CONTROL_UPLOAD = "crun_allow_upload"
+_CONTROLS = {CONTROL_MODE, CONTROL_ALLOW, CONTROL_BUDGET, CONTROL_UPLOAD}
 
 
-def run_entry(entry: dict, inputs: dict, mode: str, allow_paid_generation: bool = False, max_credits: float = 0) -> dict:
+def run_entry(entry: dict, inputs: dict, mode: str, allow_paid_generation: bool = False, max_credits: float = 0, *, native_media=None, allow_upload=False) -> dict:
     """Lazy import keeps metadata inspection independent of execution clients."""
     if __package__:
         from .crun.execution import run_entry as execute
     else:
         from crun.execution import run_entry as execute
-    return execute(entry, inputs, mode, allow_paid_generation=allow_paid_generation, max_credits=max_credits)
+    return execute(entry, inputs, mode, allow_paid_generation=allow_paid_generation, max_credits=max_credits, native_media=native_media, allow_upload=allow_upload)
 
 
 def _load_model_entries() -> list[dict]:
@@ -232,10 +233,13 @@ def _widget(field: dict) -> tuple:
 def field_definitions(entry: dict) -> list[tuple[str, str, dict, bool]]:
     schema = _input_schema(entry)
     fields = []
+    native_sockets = {binding["socket"] for binding in image_bindings(entry)}
     for name, field in schema.get("properties", {}).items():
         if name in {"model", "callback_url", "stream"} or not isinstance(field, dict):
             continue
         widget_name = f"input_{name}" if name in _CONTROLS else name
+        if widget_name in native_sockets:
+            widget_name += "_urls"
         fields.append((widget_name, name, field, name in schema.get("required", [])))
     return fields
 
@@ -258,15 +262,53 @@ def _parse_field(value: Any, field: dict, name: str) -> Any:
     return value
 
 
+def image_bindings(entry: dict) -> list[dict]:
+    """Only known image fields become sockets; video/audio URLs stay distinct."""
+    properties = _input_schema(entry).get("properties", {})
+    bindings = []
+    model = str(entry.get("model") or "").lower()
+    for wire, field in properties.items():
+        # Some documented image arrays are alternatives to a single URL. Use
+        # their actual array branch, without dropping the outer description.
+        branches = field.get("oneOf", []) + field.get("anyOf", [])
+        array_branch = next((branch for branch in branches if isinstance(branch, dict) and branch.get("type") == "array"), None)
+        if array_branch is not None:
+            field = {**field, **array_branch}
+        kind = _field_type(field)
+        if wire in {"img_urls", "image_urls", "images", "reference_images"} and kind == "array" and _field_type(field.get("items", {})) == "string":
+            count = field.get("maxItems")
+            description = str(field.get("description") or "").lower()
+            if entry.get("effect_template_id") and isinstance(count, int) and 1 < count <= 8 and field.get("minItems") == count:
+                for index in range(count):
+                    bindings.append({"socket": f"image_{index + 1}", "wire_name": wire, "kind": "image", "many": False})
+            elif "i2v" in model or "f2v" in model or entry.get("kind") == "video" and "r2v" not in model and "first frame" in description:
+                bindings.append({"socket": "first_frame", "wire_name": wire, "kind": "image", "many": False})
+                if isinstance(count, int) and count >= 2 and any(word in description for word in ("last frame", "last-frame", "end frame", "end-frame", "tail frame")):
+                    bindings.append({"socket": "last_frame", "wire_name": wire, "kind": "image", "many": False})
+            else:
+                socket = "reference_images" if "r2v" in model or wire == "reference_images" or entry.get("effect_template_id") else "image"
+                bindings.append({"socket": socket, "wire_name": wire, "kind": "image", "many": True})
+        elif wire in {"image_url", "mask_url", "bg_image_url", "new_face"} and kind == "string":
+            socket = {"image_url": "image", "mask_url": "mask", "bg_image_url": "background_image", "new_face": "face_image"}[wire]
+            bindings.append({"socket": socket, "wire_name": wire, "kind": "mask" if wire == "mask_url" else "image", "many": False})
+    # Never create two sockets with an ambiguous mapping.
+    names = [binding["socket"] for binding in bindings]
+    if len(names) != len(set(names)):
+        raise ValueError("Ambiguous native image socket definition.")
+    return bindings
+
+
 def make_node(entry: dict) -> type:
     frozen = deepcopy(entry)
     fields = field_definitions(frozen)
+    bindings = image_bindings(frozen)
+    native_wires = {binding["wire_name"] for binding in bindings}
     group = str(frozen.get("group") or "Models").replace("/", " - ")
     provider = str(frozen.get("provider") or "CRUN").replace("/", " - ")
     category = f"CRUN Next/{group}/{provider}"
     description = (f"{frozen.get('title') or frozen.get('model')} — {frozen.get('model')}. "
                    "Prepare is offline. Estimate does not generate. Generate needs explicit permission and a positive budget. "
-                   "Media references currently use public HTTPS URLs; native upload is not implemented. "
+                   "Connect native IMAGE/MASK references where provided. Upload requires explicit permission; prepare stays offline. "
                    f"Documentation: {frozen.get('documentation_url', 'https://docs.crun.ai/')}")
     if not frozen.get("generation_supported", False):
         description += " This operation is prepare-only until its protocol is implemented."
@@ -279,22 +321,28 @@ def make_node(entry: dict) -> type:
             CONTROL_BUDGET: ("FLOAT", {"default": 0.0, "min": 0.0, "step": 0.1, "tooltip": "Maximum CRUN credits for this task. Zero prevents generation."}),
         }
         optional = {}
-        for widget_name, _, schema, is_required in fields:
+        for widget_name, wire_name, schema, is_required in fields:
             if "const" in schema:
                 continue  # Fixed template/model metadata is not an editable widget.
             (required if is_required else optional)[widget_name] = _widget(schema)
         if not fields:
             optional["advanced_input_json"] = ("STRING", {"default": "{}", "multiline": True, "tooltip": "No parameter schema was available. Consult documentation; prepare-only unless supported."})
+        if bindings:
+            optional[CONTROL_UPLOAD] = ("BOOLEAN", {"default": False, "tooltip": "Allow connected images/masks to be uploaded to CRUN when estimating or generating. Prepare never uploads."})
+        for binding in bindings:
+            optional[binding["socket"]] = ("MASK" if binding["kind"] == "mask" else "IMAGE", {"tooltip": f"Native {binding['kind']} reference for {binding['wire_name']}. Reference order is preserved. Use either native connections or the URL fallback for this field."})
         result = {"required": required}
         if optional:
             result["optional"] = optional
         return result
 
-    def execute(self, crun_mode="prepare", crun_allow_paid_generation=False, crun_max_credits=0.0, **kwargs):
+    def execute(self, crun_mode="prepare", crun_allow_paid_generation=False, crun_max_credits=0.0, crun_allow_upload=False, **kwargs):
         if crun_mode not in MODES:
             raise ValueError("Choose prepare, estimate or generate.")
         if not isinstance(crun_allow_paid_generation, bool):
             raise ValueError("Paid generation permission must be a boolean.")
+        if not isinstance(crun_allow_upload, bool):
+            raise ValueError("Upload permission must be a boolean.")
         if isinstance(crun_max_credits, bool) or not isinstance(crun_max_credits, (int, float)) or not math.isfinite(crun_max_credits) or crun_max_credits < 0:
             raise ValueError("Maximum credits must be a finite nonnegative number.")
         values = {}
@@ -312,7 +360,8 @@ def make_node(entry: dict) -> type:
             values[wire_name] = value
         if not fields and kwargs.get("advanced_input_json"):
             values = _parse_field(kwargs["advanced_input_json"], {"type": "object"}, "advanced_input_json")
-        result = run_entry(frozen, values, crun_mode, allow_paid_generation=crun_allow_paid_generation, max_credits=float(crun_max_credits))
+        native_media = [{**binding, "value": kwargs[binding["socket"]]} for binding in bindings if kwargs.get(binding["socket"]) is not None]
+        result = run_entry(frozen, values, crun_mode, allow_paid_generation=crun_allow_paid_generation, max_credits=float(crun_max_credits), native_media=native_media, allow_upload=crun_allow_upload)
         credits = result.get("credits")
         if isinstance(credits, bool) or not isinstance(credits, (int, float)) or not math.isfinite(credits):
             credits = -1.0

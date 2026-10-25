@@ -1,8 +1,8 @@
 # Product direction
 
-CRUN Next is becoming an Effects and AI Tools workbench for editors. The catalog
-provides breadth; verified native media workflows, useful reference controls and
-recoverable results are the next quality gates. Discovery is not tested execution.
+CRUN Next is becoming an Effects and AI Tools workbench for editors. Focused
+native media workflows now sit above the broad catalog. Discovery, implemented
+adapters and verified paid execution are separate readiness levels.
 
 ## Delivered foundations — 0.1 and 0.2
 
@@ -20,30 +20,46 @@ recoverable results are the next quality gates. Discovery is not tested executio
   once, return a task ID and keep a local recovery journal.
 - [x] Real authenticated balance, LLM inventory and Effects catalog GET checks.
 
-The generation gate is implemented, but **no real paid generation has been
-tested**. LLM/dedicated protocols remain prepare-only. Native uploads, automatic
-polling and durable result download are not implemented in 0.2.
+## Implemented creative workflow layer — 0.3
+
+- [x] 62 focused image/video family nodes with version dropdowns covering 162
+  operations. Per-model nodes remain under Advanced/Catalog for existing graphs.
+- [x] Selected-model controls: choices, numeric ranges and reference requirements;
+  advanced technical/URL controls collapsed; execution permissions reset on change.
+- [x] Recognized native IMAGE/MASK roles with ordered references and explicit
+  upload permission. Prepare remains offline; native estimates require opt-in upload.
+- [x] Credential/content-scoped, memory-only upload cache with a 30-minute TTL.
+- [x] Existing-task Image/Video Result retrieval: bounded polling/download,
+  durable files in output/CRUNResults and native Comfy IMAGE/VIDEO outputs.
+- [x] 62 Studio workflow starters with reference and result preview/save paths,
+  alongside 1,337 per-option catalog starters (1,399 total).
+- [x] Unknown outcomes/timeouts retain the task ID and never create replacements.
+
+These paths have offline/fake-transport and local Comfy preparation coverage.
+**Real uploads, live estimates, paid generation and generated-media retrieval
+have not been tested for 0.3.** LLM/dedicated protocols remain prepare-only;
+nested complex references and native VIDEO/AUDIO input uploads remain pending.
 
 ## Next gate — verified effects and one useful tool
 
 1. Select one single-image effect, one effect with ordered multiple references
    and one repair tool. Confirm current parameters, slot semantics, media limits
    and estimates.
-2. Add native IMAGE/MASK inputs and explicit uploads. Show the selected files and
-   model before submission; opening a node/template must not upload anything.
+2. Validate the implemented native IMAGE/MASK upload path against those specific
+   operations. Confirm the media review and per-model reference labels are useful.
 3. Test only the approved paid scope and ceiling. Verify task creation, actual
    status, provider output and billed credits for representative requests.
 4. Recover accepted IDs after interruption/restart. Ambiguous outcomes must not
    automatically create replacement jobs.
-5. Download durably and verify decode, dimensions/duration and usable native
-   IMAGE/VIDEO/AUDIO outputs, preserving original inputs and task receipts.
+5. Exercise the implemented retrieval path with approved generated media; verify
+   decode, dimensions/duration, preview/save behavior, originals and cost receipts.
 
 ## Priorities after verified execution
 
 | Feature | Editor benefit | Acceptance evidence |
 | --- | --- | --- |
 | Named reference slots | Know which character, product or frame belongs where | Verified template-specific order/counts |
-| Result adapters | Connect results to downstream Comfy nodes | Real upload → generation → durable native output |
+| Result adapters | Connect results to downstream Comfy nodes | Implemented IMAGE/VIDEO paths validated with an approved real round trip |
 | Task board and recovery | Resume safely after interruption | Persisted IDs, clear status, explicit retry decisions |
 | Credit receipts | See estimate, reservation, actual cost and balance | Provider task data plus a separate balance read |
 | Effects shelf | Find suitable effects visually | Complete search/filter, opt-in previews and favorites |
@@ -55,7 +71,8 @@ polling and durable result download are not implemented in 0.2.
 ## Later gates
 
 - Persistent character/reference packs for reuse across intentional jobs.
-- Native video/audio/3D adapters and preview/save controls.
+- Native VIDEO/AUDIO input uploads, complex 3D/nested reference adapters and
+  native audio/3D result adapters; image/video result preview/save is implemented.
 - Workflow-safe favorites, shortcuts and provider-specific recipes.
 - Cancellation only where documented; no refund promise.
 - Opt-in batching with an aggregate budget and per-job recovery.

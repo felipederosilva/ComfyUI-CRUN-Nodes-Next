@@ -1,4 +1,5 @@
 import unittest
+from unittest.mock import MagicMock, patch
 
 import requests
 
@@ -115,6 +116,52 @@ class ClientTests(unittest.TestCase):
         self.assertEqual(client.create_task("test/model", {"prompt": "Fictional"}), "fixture_task")
         self.assertEqual(len(session.calls), 1)
         self.assertTrue(session.calls[0][0][1].endswith("/CreateTask"))
+
+    def test_native_upload_uses_fixed_ticket_and_credential_free_put(self):
+        ticket = {"file_url": "https://cdn.example.com/temp/upload.png", "presigned_url": "https://store.example.com/bucket/upload.png?X-Amz-Signature=fixture"}
+        client, api = self.client(ticket)
+        storage = MagicMock()
+        storage.__enter__.return_value = storage
+        storage.request.return_value = Response(status=200)
+        content = b"\x89PNG\r\n\x1a\nfixture"
+        with patch("crun.client.requests.Session", return_value=storage):
+            self.assertEqual(client.upload_bytes(content), ticket["file_url"])
+        self.assertEqual(api.calls[0][0], ("GET", API_BASE + "/api/v1/client/files/upload-url"))
+        self.assertEqual(api.calls[0][1]["params"], {"content_type": "image/png", "ext": ".png"})
+        args, kwargs = storage.request.call_args
+        self.assertEqual(args, ("PUT", ticket["presigned_url"]))
+        self.assertEqual(kwargs["headers"], {"Content-Type": "image/png"})
+        self.assertEqual(kwargs["data"], content)
+        self.assertFalse(kwargs["allow_redirects"])
+        self.assertFalse(storage.trust_env)
+        self.assertEqual(storage.request.call_count, 1)
+
+    def test_upload_rejects_private_urls_before_put_and_bad_bytes_before_ticket(self):
+        client, api = self.client({"file_url": "https://cdn.example.com/file.png", "presigned_url": "https://127.0.0.1/private"})
+        with patch("crun.client.requests.Session", side_effect=AssertionError("Do not PUT private URLs")):
+            with self.assertRaises(CRUNError):
+                client.upload_bytes(b"\x89PNG\r\n\x1a\nfixture")
+        for content in (b"not a PNG", b"", "string"):
+            with self.assertRaises(CRUNError):
+                client.upload_bytes(content)
+        self.assertEqual(len(api.calls), 1)
+
+    def test_upload_error_is_sanitized_and_never_retried(self):
+        ticket = {"file_url": "https://cdn.example.com/temp.png", "presigned_url": "https://store.example.com/temp.png?SECRET_SIGNATURE"}
+        for outcome in (requests.Timeout("SECRET"), Response(status=302), Response(status=500)):
+            client, api = self.client(ticket)
+            storage = MagicMock()
+            storage.__enter__.return_value = storage
+            if isinstance(outcome, Exception):
+                storage.request.side_effect = outcome
+            else:
+                storage.request.return_value = outcome
+            with patch("crun.client.requests.Session", return_value=storage):
+                with self.assertRaises(CRUNError) as raised:
+                    client.upload_bytes(b"\x89PNG\r\n\x1a\nfixture")
+            self.assertNotIn("SECRET", str(raised.exception))
+            self.assertIn("No generation", str(raised.exception))
+            self.assertEqual(storage.request.call_count, 1)
 
     def test_ambiguous_submission_never_retries_or_suggests_resubmit(self):
         for response in [requests.Timeout("PRIVATE"), Response({}, 500), Response({}, 502), Response({"code": 500, "data": {}}), Response(ValueError("PRIVATE"))]:

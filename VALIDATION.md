@@ -1,72 +1,81 @@
-# 0.2.0 catalog alpha validation
+# 0.3.0 creative-node alpha validation
 
-Checked on Windows, 2026-10-25.
+Checked on Windows, 25 October 2026.
 
-## Verified
+## Verified offline
 
-- 123 offline Python tests: 122 passed, one Unix-only permission test skipped.
-- 11 JavaScript tests and frontend syntax check passed.
-- Every one of 1,337 generated node classes executed its default preparation
-  locally while provider network requests were blocked: no network calls.
-- 1,337 flat Comfy workflow templates map to every bundled catalog entry and
-  unique Effect; all start with prepare / paid permission false / credit ceiling 0.
-- Manifest maps all 1,088 Effects source records to 1,063 unique template recipes.
-  Repeated Vidu categories are preserved as metadata, not invented execution variants.
-- Model-specific required fields, enum choices, JSON arrays/objects, numeric bounds,
-  URL checks and text patterns; unsupported protocols remain preparation-only.
-- Windows DPAPI fake-key round trip and fresh settings-module load preserve the
-  credential; safe connection/balance receipts persist separately. A changed key
-  invalidates the old receipt. No plaintext key is stored in frontend settings.
-- Local HTTP nonce, same-origin/loopback boundary, bounded JSON, sanitized errors
-  and credential-free status responses.
-- Mocked paid-submission gate requires permission and positive budget, checks
-  estimate and balance, preserves task IDs and never retries. Ambiguous transport
-  and 5xx responses instruct recovery from CRUN Logs. Invalid journals block submission.
+- 174 Python tests: 173 passed and one Unix-only permission test skipped in the
+  Comfy Python environment. Torch-dependent checks skip when Torch is absent in CI.
+- 23 JavaScript tests passed, including switching every bundled family/profile,
+  enum/range updates, whole-number rendering, hidden seed controls and connection retention.
+- 62 task-focused family nodes cover 162 image/video operations. Each selected
+  model dispatches its exact documented ID and validates its own parameter schema.
+- All 62 Studio recipes connect task IDs to native result retrieval and Preview
+  Image / Save Video. The 1,337 per-option recipes are retained with native IMAGE
+  source connections where roles are known. All 1,399 start in prepare mode,
+  upload/paid permissions false and credit ceiling zero.
+- Native IMAGE/MASK encoding: ordered batches, finite normalized values, PNG
+  pixels, alpha/grayscale, image/count/byte limits and matching mask dimensions.
+- First/last-frame pairs, ordered Effect images, reference-image batches,
+  inpainting masks, face references and background images have appropriate sockets.
+  Array alternatives in Flux and Wan schemas are handled explicitly.
+- Uploads require permission. A separate credential-free PUT transports bytes;
+  no redirects or retries. Temporary receipts are cached in memory by credential
+  and content for 30 minutes, without persisting the cache.
+- Preparation placeholders cannot be submitted or quoted as real URLs. Invalid
+  parameters and ambiguous native/URL sources stop before an upload.
+- Paid submission still requires permission, a positive estimate ceiling, an
+  estimate and sufficient balance. A single task ID is journaled; ambiguous
+  submission failures instruct recovery without automatic resubmission.
+- Retrieval tests poll only the existing task ID, preserve it on failure/timeout,
+  bound downloads, omit credentials and save media under output/CRUNResults.
+- Real local PNG-to-Torch decoding and a synthetic MP4 loaded through Comfy's
+  native VideoFromFile implementation (64 x 48) verified media adapters locally.
 
-## Actual ComfyUI checks
+## Actual ComfyUI interface and execution
 
-- Isolated CPU-only ComfyUI 0.42.5 / frontend 1.55.18 starts successfully.
-- Comfy's object-info API registers 1,344 CRUN nodes: 1,337 catalog nodes plus
-  seven setup utilities. Workflow-template index exposes all 1,337 JSON recipes.
-- A video model, a fixed Effect and an AI Tool completed preparation through
-  Comfy's actual execution queue without provider calls or paid generation.
-- Browser checked: native Settings > CRUN Next custom rows, save with an isolated
-  fake key, empty password field after save, masked saved state after reopening
-  Settings, launcher, model-library counts, filtering and schema inspection.
-- The unsaved test graph was preserved; browser reload was not used as a storage
-  test. Fresh-module tests verify persistence independently of the open page.
+- Isolated CPU-only ComfyUI 0.42.5 / frontend 1.55.18 starts with CRUN Next.
+- Imported Studio-Seedance-Image-to-Video through Comfy's template browser.
+- Confirmed Load Image -> first_frame, the eight-option Seedance dropdown,
+  optional last_frame, model-specific settings, Get Video Result and Save Video.
+- Switched Seedance 2.5 to 2.0 in the real canvas: connections remained intact,
+  supported controls updated and execution reset to prepare. Advanced fields
+  stay secondary. The final interface renders integer durations without decimals.
+- Selected a locally created synthetic PNG and ran the full graph from Comfy's
+  Run button. It completed successfully with one native image, zero validation
+  errors, an empty task ID and no provider activity. Empty-ID retrieval safely
+  blocked preview/save and explained that nothing had been submitted.
+- Saved QA baselines before opening templates. No existing user workflow was
+  discarded. Screenshots show the isolated test fixture, not a paid generation.
 
-## Read-only live CRUN checks
+## Retained discovery and credentials
 
-- Existing saved key accepted by the documented balance endpoint.
-- Authenticated LLM inventory returned 55 IDs. The union with documentation is
-  64 LLM definitions; nine documentation-only IDs remain explicitly labeled.
-- Public schema discovery plus the live LLM inventory yields 274 catalog entries,
-  273 wire model IDs, 21 providers and zero unresolved definitions in this snapshot.
-- Complete paginated Effects discovery: Kling 226, ByteDance 341, Vidu 496 unique
-  template IDs (521 Vidu source rows). No key, balance or account identifiers are
-  bundled in catalog or workflow metadata.
+- The reviewed 0.2 catalog snapshot remains: 274 operations, 273 wire IDs,
+  21 providers, 55 live-listed LLM IDs in a 64-ID documentation/discovery union,
+  and 1,063 unique Effects covering all 1,088 source records.
+- That discovery used authenticated read-only balance/model/Effects endpoints.
+  Version 0.3 development did not repeat paid/provider-media operations.
+- Windows DPAPI persistence, safe historical connection/balance receipts and
+  loopback/same-origin/nonce boundaries remain covered by tests.
+- Per-option node IDs remain available. Image/video families are in the main
+  menu; individual model definitions are retained under Advanced/Catalog.
 
-## Not checked / not implemented
+## Not verified / remaining limitations
 
-- No actual paid generation, cost estimate, upload or provider-media round trip
-  was performed. Mocked submission success is not live generation evidence.
-- Native IMAGE / MASK / VIDEO / AUDIO uploads, decoded media outputs, automatic
-  task polling, result downloads and cancellation are not implemented.
-- LLM and non-CreateTask dedicated protocols are preparation-only.
-- Complex prose-only conditions and template reference meanings still require
-  review of each provider's instructions; catalog presence is not entitlement.
-- Interactive Comfy on other operating systems, shared/LAN/public servers and
-  Comfy Registry publication have not been validated for this release.
+- No real CRUN upload, cost estimate, paid generation or generated-media download
+  was performed for 0.3. Mocked transport success and local media are not evidence
+  of a provider round trip or access to every upstream model.
+- Native VIDEO/AUDIO input uploads, complex nested 3D/multi-face references,
+  LLM execution and cancellation remain pending. Advanced URL/JSON inputs remain
+  available where these native adapters do not exist.
+- Provider prose may impose additional image dimensions, file formats, reference
+  roles and conditional requirements. Machine schemas cannot prove every combination.
+- Upload URLs are temporary. Retry result retrieval by task ID after a timeout;
+  do not regenerate automatically. Original files should remain available locally.
+- Custom URL connections to a field renamed with an _urls suffix may need to be
+  reconnected; existing per-option node IDs and widget-value order are retained.
+- Other interactive operating systems, shared/public Comfy servers and Comfy
+  Registry publication have not been exercised for this release.
 
-## Local installation
-
-- Updated 1,366 allowlisted files in the actual Comfy Desktop CRUN extension.
-- Overwritten files were backed up outside custom_nodes. Credential-file hash
-  and every existing KIE extension file were verified unchanged.
-- Fresh installed-package import confirms version 0.2.0, 1,344 registered nodes,
-  saved key present and historical connected status. Sora entries register as Video.
-
-The runtime ZIP uses an explicit file allowlist and CRC/SHA256 verification.
-Credentials, user caches, task journals and Git history are excluded. Publication
-receipts are reported separately after those operations complete.
+Runtime packaging uses an explicit allowlist plus CRC/SHA256 checks. Credentials,
+user caches, task journals, signed upload links and Git history are excluded.

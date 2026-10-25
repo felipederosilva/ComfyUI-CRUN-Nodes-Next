@@ -170,3 +170,18 @@ from .generated_nodes import generated_mappings
 _generated_classes, _generated_names = generated_mappings()
 NODE_CLASS_MAPPINGS.update(_generated_classes)
 NODE_DISPLAY_NAME_MAPPINGS.update(_generated_names)
+
+from .family_nodes import family_node_mappings
+_family_classes, _family_names = family_node_mappings()
+NODE_CLASS_MAPPINGS.update(_family_classes)
+NODE_DISPLAY_NAME_MAPPINGS.update(_family_names)
+
+from .result_nodes import NODE_CLASS_MAPPINGS as _result_classes, NODE_DISPLAY_NAME_MAPPINGS as _result_names
+NODE_CLASS_MAPPINGS.update(_result_classes)
+NODE_DISPLAY_NAME_MAPPINGS.update(_result_names)
+
+# Keep stable catalog IDs for existing workflows while presenting family nodes
+# in the normal creative categories. Effects and AI Tools remain direct entries.
+for _class in _generated_classes.values():
+    if _class.CRUN_ENTRY.get("kind") not in {"effect", "tool"}:
+        _class.CATEGORY = _class.CATEGORY.replace("CRUN Next/", "CRUN Next/Advanced/Catalog/", 1)
