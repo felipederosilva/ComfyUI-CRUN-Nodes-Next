@@ -1,6 +1,6 @@
 # Security and scope
 
-CRUN Next 0.3 targets a trusted, single-user, **loopback ComfyUI** installation.
+CRUN Next 0.3.2 targets a trusted, single-user, **loopback ComfyUI** installation.
 It is not a hardened multi-user service. Do not expose the server publicly
 without a separate access-control design.
 
@@ -37,7 +37,7 @@ or tested execution. Exact model IDs come from schemas/documented discovery.
 Optional HTTPS previews load on user action, without a backend proxy, and expose
 the browser's IP to the media host. No external preview files or proprietary
 Effects implementation is bundled. Remote generation references are public
-HTTPS URLs; native files are not uploaded automatically. URL checks reject
+HTTPS URLs; native files upload when Estimate or Generate is run. URL checks reject
 embedded credentials and obvious local addresses but do not resolve DNS or
 guarantee provider-side network isolation. Do not publish workflows containing
 private media links or signed tokens.
@@ -45,21 +45,23 @@ private media links or signed tokens.
 ## Native media uploads and retrieval
 
 Connecting IMAGE/MASK media does not upload it. Prepare inspects/encodes locally
-and produces local placeholders and reference metadata. A native estimate or
-generation requires the separate `crun_allow_upload=true` permission. This sends
+and produces local placeholders and reference metadata. Selecting Estimate and
+running authorizes uploading connected references to obtain a quote; selecting
+Generate and running authorizes the uploads and one paid task. This sends
 the connected image/mask content to CRUN's documented upload endpoint. The image
 is encoded as PNG with count, shape, finite-value, pixel and byte bounds checked
 locally before upload. Exact model schemas still govern supported roles/counts.
 
-Upload permission is not paid-generation permission. Estimation with native
-media needs temporary uploaded URLs, so an authorized upload can occur before
-a quote or balance check prevents generation. Mode prepare never uploads, even
-when a saved upload permission is true. Model changes reset mode and permissions.
+Estimate does not authorize a paid task. Estimation with native media needs
+temporary uploaded URLs, so an upload can occur before a quote/cap or balance
+check prevents generation. Prepare never uploads. Model changes reset the action
+to Prepare while retaining the optional credit cap. Legacy checkbox arguments
+remain hidden for workflow compatibility; they are not additional action gates.
 
 Upload receipts are cached only in memory for 30 minutes, scoped by credential
 and content digest. CRUN documents a one-hour URL lifetime. No reusable upload URL
-cache is written to the public package; a restart may require another explicitly
-authorized upload. A workflow's user fields or outputs may contain private URLs
+cache is written to the public package; a later Estimate/Generate after restart
+may upload the references again. A workflow's user fields or outputs may contain private URLs
 and must be reviewed before sharing. Temporary URLs are not durable asset storage.
 
 Image/Video Result nodes poll only an existing task ID and cannot create jobs.
@@ -75,26 +77,35 @@ unimplemented. Use only media and likenesses you are authorized to process.
 
 ## Paid submission boundary
 
-Generated starters default to `prepare`, upload and paid permission disabled,
-and budget zero. Prepare makes no provider request. Estimate calls the quote
-endpoint without creating a job; native media must first be uploaded with explicit
-upload permission. Only a supported media operation in `generate`, with paid
-permission and a positive ceiling, can reach CreateTask.
+Generated starters default to Prepare. Prepare makes no provider request.
+Estimate uploads required connected media and calls the quote endpoint without
+creating a job. Only running a supported operation in Generate can reach
+CreateTask after input, quote, optional-cap and balance checks.
 
-The gate validates documented inputs, obtains an estimate, checks ceiling/balance
-and submits once. **The ceiling checks the estimate, not a provider-enforced final
+`crun_max_credits` is an optional estimated-credit cap under Advanced. Zero
+disables this cap; a positive existing cap remains in force and is not cleared
+when changing models. The update does not remove or raise positive saved limits.
+
+The gate validates documented inputs, obtains an estimate, checks any active
+cap and the balance, and submits once. **A cap checks the estimate, not a provider-enforced final
 spending cap.** Schema validation cannot cover every prose-only requirement.
 No real provider upload, estimate, paid generation or generated-media download
 has been tested for 0.3. LLM/dedicated protocols are prepare-only.
 
-An armed output node can submit again when Comfy executes it after edits or
-queuing. Disarm before editing/sharing graphs. Journal markers and accepted IDs
+An output node set to Generate can submit again when Comfy executes it after
+edits or queuing. Select Prepare before editing/sharing graphs. Journal markers and accepted IDs
 omit keys, prompts and reference URLs. Unknown outcomes require inspecting CRUN
 Logs and recovering the existing ID before intentionally submitting another job.
 There is no automatic resubmission or paid-job replacement. Result retrieval may
 poll and download the same accepted ID; timeout/interruption preserves that ID
 for explicit retrieval retry. The journal is a recovery aid, not a provider
 idempotency guarantee.
+
+Credit receipt widgets display only returned metadata; they do not upload,
+estimate or submit. They do not persist payloads, prompts, reference URLs or
+credentials into their workflow state. The last quote is not a final charge and
+the balance-at-check is not continuously live. A cap/balance rejection preserves
+the quote for review without fabricating a task ID or a zero-cost success.
 
 ## Installation and reporting
 

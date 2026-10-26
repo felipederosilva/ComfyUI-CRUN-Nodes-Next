@@ -177,7 +177,7 @@
       "mode": 0,
       "properties": {},
       "widgets_values": [
-        "CRUN NEXT — SAFE START\n\nThis workflow defaults to PREPARE: no API request, upload or charge.\nEnter your API key only through Settings > CRUN Next, never in a workflow.\nConnect Load Image to native IMAGE references, or use Advanced URL fallbacks. Arrays/objects use JSON.\nPREPARE never uploads. Estimating connected images requires explicit upload permission; GENERATE also needs paid permission and a positive credit ceiling.\nDo not share private media links when publishing this workflow.\n\nOption: Pole Dance\nModel: vidu/template\nDocumentation: https://docs.crun.ai/templates/vidu-template\n\nEffects: the fixed template identifier belongs to this node. Preserve reference order; confirm any unknown slot counts in the provider instructions.\n"
+        "CRUN NEXT — SAFE START\n\nThis workflow defaults to PREPARE: no API request, upload or charge.\nEnter your API key only through Settings > CRUN Next, never in a workflow.\nConnect Load Image to native IMAGE references, or use Advanced URL fallbacks. Arrays/objects use JSON.\nPREPARE stays local. ESTIMATE uploads connected references and requests a price. GENERATE uploads references and submits a paid task.\nThe optional credit cap is under Advanced: 0 disables it; a positive cap is respected. Review the visible quote receipt.\nDo not share private media links when publishing this workflow.\n\nOption: Pole Dance\nModel: vidu/template\nDocumentation: https://docs.crun.ai/templates/vidu-template\n\nEffects: the fixed template identifier belongs to this node. Preserve reference order; confirm any unknown slot counts in the provider instructions.\n"
       ],
       "color": "#263341",
       "bgcolor": "#17232d"

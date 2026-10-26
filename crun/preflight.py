@@ -1,8 +1,10 @@
 """Pure configuration checks shared by Comfy queue validation and execution.
 
 No settings, credentials, media encoding or provider client is touched here.
-Unknown linked controls are deferred only during queue validation; execution
-must call the same checks with the actual values and defer_unknown=False.
+The selected action expresses intent: Prepare is offline; Estimate/Generate
+upload references as required, and Generate submits a paid task. Legacy
+permission arguments remain accepted for existing workflows. A zero credit
+limit disables the optional cap; positive limits are preserved and enforced.
 """
 from __future__ import annotations
 
@@ -16,18 +18,11 @@ _MODES = ("prepare", "estimate", "generate")
 def configuration_errors(mode, allow_paid_generation, max_credits, *,
                          allow_upload=False, has_native_media=False,
                          defer_unknown=False) -> list[str]:
-    """Describe missing user approvals without choosing a budget or spending."""
+    """Validate the action and optional cap without requesting or spending."""
     errors = []
     mode_unknown = mode is None and defer_unknown
     if not mode_unknown and mode not in _MODES:
         errors.append("crun_mode must be prepare, estimate or generate.")
-
-    paid_unknown = allow_paid_generation is None and defer_unknown
-    if not paid_unknown and not isinstance(allow_paid_generation, bool):
-        errors.append("crun_allow_paid_generation must be true or false.")
-    upload_unknown = allow_upload is None and defer_unknown
-    if not upload_unknown and not isinstance(allow_upload, bool):
-        errors.append("crun_allow_upload must be true or false.")
 
     budget_unknown = max_credits is None and defer_unknown
     budget_valid = isinstance(max_credits, (int, float)) and not isinstance(max_credits, bool)
@@ -37,16 +32,7 @@ def configuration_errors(mode, allow_paid_generation, max_credits, *,
         except (OverflowError, ValueError):
             budget_valid = False
     if not budget_unknown and not budget_valid:
-        errors.append("crun_max_credits must be a finite, nonnegative number. Generating requires a positive user-approved limit.")
-
-    if mode == "generate":
-        if allow_paid_generation is False:
-            errors.append("Paid generation is not armed. Enable crun_allow_paid_generation only after reviewing the estimate.")
-        if budget_valid and max_credits == 0:
-            errors.append("Set crun_max_credits to a positive user-approved estimated-credit limit before generating; zero blocks generation. Use crun_mode=estimate first to review the quote.")
-
-    if mode in ("estimate", "generate") and has_native_media and allow_upload is False:
-        errors.append("Enable crun_allow_upload to allow the connected images or masks to be sent to CRUN. Estimating native references also requires this upload permission; prepare stays offline.")
+        errors.append("crun_max_credits must be a finite, nonnegative number. Set 0 for no optional cap, or a positive limit you choose.")
     return errors
 
 

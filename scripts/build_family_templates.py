@@ -100,10 +100,10 @@ def workflow_for(family, node_type, display_name):
             instructions.append("The reference_images socket accepts an IMAGE batch. Add an Image Batch node for multiple references; preserve their intended order and selected-model limits.")
         if "last_frame" in supported_images and "last_frame" not in connected:
             instructions.append("The default shot uses a first frame. Connect a second Load Image to last_frame only when that model supports it.")
-    instructions += ["", "SAFE START: crun_mode=prepare, upload permission=false, paid permission=false, maximum credits=0.",
+    instructions += ["", "START: Action=prepare. The optional credit cap is disabled at 0.",
                      "Preparation runs locally and reports validation errors without uploads or provider charges.",
-                     "Estimating with connected images requires explicit upload permission. Uploading sends media to CRUN.",
-                     "Generating additionally requires paid permission and a positive credit ceiling; inspect the fresh estimate first.",
+                     "Estimate uploads connected references and requests a price. Generate uploads them and submits a paid task.",
+                     "The last quote is visible on the node. An optional positive credit cap can be set under Advanced; 0 disables it.",
                      "Never put an API key in this graph. Configure it under Settings > CRUN Next.",
                      "", "Default model: " + profile["model_id"], profile.get("capability_text", ""),
                      "Documentation: " + str(profile.get("documentation_url") or "https://docs.crun.ai/"),

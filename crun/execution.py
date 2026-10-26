@@ -1,7 +1,8 @@
-"""Schema-aware payload preparation and an explicit, budgeted media task gate.
+"""Schema-aware preparation and explicit media actions with an optional cap.
 
 Import, preparation, catalog discovery and workflows' default mode cannot submit
-a paid job. Connected media is uploaded only after explicit upload permission.
+a paid job. Estimate/Generate authorize their necessary reference uploads;
+Generate explicitly authorizes one paid submission after balance checks.
 """
 from __future__ import annotations
 
@@ -205,9 +206,10 @@ def run_entry(entry: dict, inputs: dict, mode: str, allow_paid_generation: bool 
     payload, errors = build_payload(entry, prepared_inputs)
     result = {"mode": mode, "entry_id": entry.get("id"), "model": entry.get("model"), "payload": payload,
               "task_id": "", "credits": -1.0, "credit_state": "unavailable", "status": "draft", "errors": errors,
-              "warnings": [], "native_media": media_info}
+              "warnings": [], "native_media": media_info, "credit_limit": max_credits,
+              "quoted_at": None, "balance_before": None}
     if media_info:
-        result["warnings"].append("Connected images are local placeholders until explicit upload permission is enabled for estimate/generate. Prepare never uploads.")
+        result["warnings"].append("Connected images remain local in prepare mode. Selecting estimate or generate uploads the references needed for that action.")
     if mode == "prepare":
         return result
     if errors:
@@ -215,7 +217,9 @@ def run_entry(entry: dict, inputs: dict, mode: str, allow_paid_generation: bool 
     supported = entry.get("method", "POST").upper() == "POST" and entry.get("endpoint") == "/api/v1/client/job/CreateTask" and isinstance(payload.get("input"), dict) and isinstance(payload.get("model"), str)
     if not supported or entry.get("generation_supported") is False:
         raise ValueError("This operation has a dedicated protocol. It is available for preparation, not execution in this release.")
-    missing = configuration_errors(mode, allow_paid_generation, max_credits, allow_upload=allow_upload, has_native_media=bool(encoded_media))
+    # The selected action is the intent. Legacy checkbox arguments remain in
+    # the signature so existing workflows load, but are no longer extra gates.
+    missing = configuration_errors(mode, mode == "generate", max_credits, allow_upload=True, has_native_media=bool(encoded_media))
     if missing:
         raise ValueError("CRUN setup incomplete: " + " ".join(missing) + " No CRUN request was made.")
     client = CRUNClient()
@@ -230,18 +234,33 @@ def run_entry(entry: dict, inputs: dict, mode: str, allow_paid_generation: bool 
         if errors:
             raise ValueError("Uploaded reference validation failed; no task submitted: " + "; ".join(errors[:12]))
         result["payload"] = payload
-        result["warnings"] = ["Connected references were uploaded with explicit permission. CRUN upload URLs are temporary."]
+        result["warnings"] = ["Connected references were uploaded for the selected action. CRUN upload URLs are temporary."]
         for info in result["native_media"]:
             info["upload_required"] = False
     quote = client.estimate_credits(payload["model"], payload["input"])
-    result.update(credits=quote["credits"], credit_state="estimate", status="estimated", provisional=quote["estimated"])
+    result.update(credits=quote["credits"], credit_state="estimate", status="estimated", provisional=quote["estimated"], quoted_at=int(time.time()))
+    limit_label = f"{max_credits:g} CRUN credits" if max_credits > 0 else "none (optional cap disabled)"
+    print(f"[CRUN Next] Quote for {payload['model']}: {quote['credits']:g} CRUN credits; optional generation limit: {limit_label}.")
+    if max_credits > 0:
+        result["warnings"].append("The optional credit limit checks the estimate, not a provider-enforced final spending cap.")
     if mode == "estimate":
         return result
-    if quote["credits"] > max_credits:
-        raise ValueError("The current estimate exceeds your credit ceiling. No task was submitted.")
-    result["warnings"].append("The ceiling checks the estimate, not a provider-enforced final spending cap.")
-    if client.get_balance() < quote["credits"]:
-        raise ValueError("Insufficient CRUN balance for the current estimate. No task was submitted.")
+    if max_credits > 0 and quote["credits"] > max_credits:
+        message = (f"CRUN quotes {quote['credits']:g} credits; your limit is {max_credits:g} credits. "
+                   "No generation was submitted. Choose a higher limit only if you approve this quote.")
+        result.update(status="budget_blocked")
+        result["errors"].append(message)
+        print(f"[CRUN Next] {message}")
+        return result
+    balance = client.get_balance()
+    result["balance_before"] = balance
+    if balance < quote["credits"]:
+        message = (f"CRUN quotes {quote['credits']:g} credits; your available balance is {balance:g} credits. "
+                   "No generation was submitted because the balance is insufficient.")
+        result.update(status="insufficient_balance")
+        result["errors"].append(message)
+        print(f"[CRUN Next] {message}")
+        return result
     # Journal a preflight marker before submission; no credentials or input media.
     marker = {"entry_id": entry.get("id"), "model": payload["model"], "created_at": int(time.time()), "status": "submitting"}
     _record(marker)

@@ -82,7 +82,7 @@ class GeneratedNodeTests(unittest.TestCase):
 
     def test_bad_json_mode_and_budget_fail_before_execution(self):
         node = generated.make_node(sample_entry())()
-        for kwargs in ({"images": "not-json"}, {"crun_mode": "auto"}, {"crun_max_credits": float("nan")}, {"crun_allow_paid_generation": "yes"}):
+        for kwargs in ({"images": "not-json"}, {"crun_mode": "auto"}, {"crun_max_credits": float("nan")}):
             with self.assertRaises((ValueError, json.JSONDecodeError)):
                 node.execute(**kwargs)
 

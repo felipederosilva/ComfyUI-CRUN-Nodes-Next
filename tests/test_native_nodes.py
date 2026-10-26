@@ -48,13 +48,13 @@ class NativeNodeTests(unittest.TestCase):
                 self.assertIsInstance(result['payload']['input']['img_urls'], list)
                 self.assertEqual(len(result['payload']['input']['img_urls']), 1)
 
-    def test_estimation_requires_explicit_reference_upload_permission(self):
+    def test_prepare_stays_offline_and_invalid_optional_cap_stops_before_request(self):
         node = generated.make_node(model('bytedance/seedance2-0-i2v'))()
         with patch.object(execution, 'CRUNClient', side_effect=AssertionError('No provider request')):
-            with self.assertRaisesRegex(ValueError, 'crun_allow_upload'):
-                node.execute(prompt='A fictional landscape', first_frame=self.image, crun_mode='estimate')
-            with self.assertRaisesRegex(ValueError, 'not armed'):
-                node.execute(prompt='A fictional landscape', first_frame=self.image, crun_mode='generate', crun_allow_upload=True)
+            result = json.loads(node.execute(prompt='A fictional landscape', first_frame=self.image)['result'][0])
+            self.assertEqual(result['mode'], 'prepare')
+            with self.assertRaisesRegex(ValueError, 'nonnegative'):
+                node.execute(prompt='A fictional landscape', first_frame=self.image, crun_mode='generate', crun_max_credits=-1)
 
     def test_bad_model_inputs_stop_before_upload(self):
         node = generated.make_node(model('bytedance/seedance2-0-i2v'))()
@@ -62,11 +62,11 @@ class NativeNodeTests(unittest.TestCase):
             with self.assertRaisesRegex(ValueError, 'Invalid model input'):
                 node.execute(prompt='A fictional landscape', resolution='unsupported', first_frame=self.image, crun_mode='estimate', crun_allow_upload=True)
 
-    def test_explicit_estimate_uploads_then_quotes_without_submission(self):
+    def test_estimate_action_uploads_then_quotes_without_extra_switches_or_submission(self):
         node = generated.make_node(model('bytedance/seedance2-0-i2v'))()
         with patch.object(execution, 'CRUNClient') as client, patch.object(media, 'upload_pngs', return_value=['https://cdn.example.com/image.png']) as upload:
             client.return_value.estimate_credits.return_value = {'credits': 5, 'estimated': True}
-            result = json.loads(node.execute(prompt='Fictional scene', first_frame=self.image, crun_mode='estimate', crun_allow_upload=True)['result'][0])
+            result = json.loads(node.execute(prompt='Fictional scene', first_frame=self.image, crun_mode='estimate')['result'][0])
             upload.assert_called_once()
             client.return_value.estimate_credits.assert_called_once_with('bytedance/seedance2-0-i2v', {'prompt': 'Fictional scene', 'img_urls': ['https://cdn.example.com/image.png']})
             client.return_value.create_task.assert_not_called()

@@ -17,8 +17,9 @@ or is available to every account.
 | Vidu | `GET /api/v1/client/job/vidu-templates` | `model: vidu/template`; input uses `template`, `images`, and optional supported options such as `bgm` |
 
 All three documented generation examples use the shared `CreateTask` endpoint
-with `x-api-key`. Version 0.3 preserves single-task submission with separate upload
-and paid permissions. Known image fields can receive native Comfy connections;
+with `x-api-key`. Version 0.3.2 uses Prepare/Estimate/Generate actions for single-task
+submission: Estimate uploads required references for a quote, while Generate
+uploads references and submits a paid task. Known image fields receive native connections;
 result adapters poll an existing ID and return native IMAGE/VIDEO media. These
 provider paths remain unverified with an actual paid round trip.
 
@@ -71,9 +72,15 @@ and 3D structures and native VIDEO/AUDIO upload need further adapters.
 
 The [documented upload endpoint](https://docs.crun.ai/common-api/file-upload) accepts
 multipart media and returns temporary URLs, documented as lasting one hour. Native
-upload requires explicit permission, including before a quote uses connected
-images. A memory-only 30-minute cache is scoped to credential and content. Prepare
-does not send media. Upload permission never authorizes paid task submission.
+references upload when the user runs Estimate or Generate, while Prepare stays
+local. Estimate never submits a paid task. A memory-only 30-minute cache is scoped
+to credential and content.
+
+The optional estimated-credit cap lives under Advanced: 0 disables it, positive
+saved limits remain intact. Generation nodes display the last quote, cap and
+balance-at-check when available. These receipts do not make requests and do not
+turn an estimate into evidence of a final charge. A cap or balance block has no
+task ID; result retrieval waits for an actual submitted/existing task.
 
 Result adapters inspect the same task through the [task contract](https://docs.crun.ai/models/common/get-task-info),
 poll within a bounded timeout, download one selected result without credential
@@ -86,8 +93,8 @@ The [official documentation index](https://docs.crun.ai/llms.txt) lists dedicate
 image and video utilities. The 0.1 skeleton included a curated planned-feature
 index. All 18 documented tool operations now have schema-aware Nodes-menu entries
 and workflow starters. Recognized image/mask roles accept native references.
-Their workspace cards inspect inputs; supported media-task nodes submit only
-through explicit upload/generation permissions.
+Their workspace cards inspect inputs; supported media-task nodes upload and
+submit according to the selected action, with optional positive caps preserved.
 
 First candidates are image upscale/Pro, expansion, background removal, inpainting,
 colorization, background regeneration, headshots and video enhancement. Relevant

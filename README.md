@@ -5,7 +5,7 @@ lessons of [KIE Nodes Next](https://github.com/felipederosilva/ComfyUI-KIE-Nodes
 with separate code, credentials, node IDs and installation. Not affiliated with
 or endorsed by CRUN or Comfy Org.
 
-## 0.3.1 — native references, model-family workflows and configuration preflight
+## 0.3.2 — model-family workflows with simple actions and credit receipts
 
 Connect **Load Image** to **Seedance — Image to Video**, choose a version from
 its model dropdown, and work with that version's supported controls. CRUN Next
@@ -14,7 +14,7 @@ with native image and mask connections where the reference roles are known.
 
 The model selector updates choices, ranges and reference requirements. Advanced
 URL/technical inputs stay behind **Show advanced controls**. Switching a model
-resets execution to prepare and disarms upload/paid permissions for review.
+resets execution to prepare while retaining your optional credit cap.
 
 Result nodes retrieve an existing task as native **IMAGE** or **VIDEO**, save a
 local copy under `output/CRUNResults`, and connect to Comfy preview/save nodes.
@@ -46,12 +46,15 @@ connections; advanced nested media and VIDEO/AUDIO input uploads remain pending.
 
 ## Install or update
 
-Version 0.3.1 adds queue-time configuration checks. A zero `crun_max_credits`
-blocks paid generation; it never means unlimited spending. If a connected image
-needs to be sent to CRUN, `crun_allow_upload` must also be enabled explicitly.
-Use `crun_mode=estimate` with upload permission to obtain a quote, then choose
-your own positive credit limit before using generate. No budget or permission
-is automatically enabled by the update.
+Version 0.3.2 uses the selected action as the intent: **Prepare** stays local,
+**Estimate** uploads connected references and requests a quote, and **Generate**
+uploads references and submits one paid task after validation/balance checks.
+The extra upload/paid checkboxes are hidden and no longer gate those actions.
+
+The optional credit cap is under **Show advanced controls**. Set
+`crun_max_credits=0` for no optional cap, or keep a positive limit you choose.
+Existing limits, including a 100-credit cap, remain unchanged through model
+selection and updates. No positive limit is silently raised or cleared.
 
 Use the backend ComfyUI folder containing `main.py` and `custom_nodes`, not the
 Desktop program/resources directory. Obtain source from this repository or an
@@ -92,20 +95,19 @@ version in its dropdown. Connect the labeled image references. When a socket
 accepts an image batch, batch order is preserved. A native connection and its
 advanced URL fallback cannot both supply the same field.
 
-1. Keep `crun_mode=prepare`, `crun_allow_upload=false`,
-   `crun_allow_paid_generation=false` and `crun_max_credits=0`. Run to inspect
-   local reference metadata, the prepared request and validation errors. Prepare
-   never uploads or contacts CRUN. Downstream result previews wait for a task ID.
-2. Select `estimate` to request a quote without creating a job. With native
-   references, explicitly enable `crun_allow_upload`: the images/masks must be
-   sent to CRUN before its estimate can use their temporary URLs. Without that
-   permission, estimation stops before uploading. Existing HTTPS URL references
-   do not need a new upload.
-3. Review the selected model, media, supported settings and quote. To submit,
-   select `generate`, enable paid permission and set a positive credit ceiling.
-   The node uploads only if separately permitted, gets an estimate, checks
-   ceiling/balance and submits **once**. Uploads can therefore occur before a
-   quote exceeds the ceiling. The ceiling is not a provider-enforced final cap.
+1. Keep `crun_mode=prepare` to inspect local reference metadata, the prepared
+   request and validation errors. Prepare never uploads or contacts CRUN.
+   Downstream result previews wait for a task ID.
+2. Select `estimate` and run to request a quote without creating a job. Connected
+   images/masks are uploaded for that action so CRUN can quote their temporary
+   URLs; existing HTTPS references do not need a new upload. The receipt beneath
+   the node shows the model, quote, timestamp and optional cap.
+3. Review the selected model, references, supported settings and quote. Select
+   `generate` and run to submit intentionally. The node uploads required media,
+   obtains an estimate, checks any positive optional cap and the available
+   balance, then submits **once**. A cap of 0 disables the optional cap. Uploads
+   can occur before the quote/cap or balance stops generation. A positive cap
+   checks the estimate; it is not a provider-enforced limit on the final bill.
 4. Connect `task_id` to **Get Image Result** or **Get Video Result**. The result
    node polls that same ID, downloads a selected result, saves a durable local
    copy and returns native media for Preview/Save. A timeout does not resubmit;
@@ -113,9 +115,9 @@ advanced URL fallback cannot both supply the same field.
 
 On timeout or an unknown submission outcome, inspect CRUN's task logs before
 submitting again. There is no automatic retry. A local journal keeps submission
-markers/task IDs without prompts, media URLs or keys. Disarm generation before
-editing or sharing a workflow: another execution of an armed node can create
-another paid job.
+markers/task IDs without prompts, media URLs or keys. Select Prepare before
+editing or sharing a workflow: executing a node in Generate can create another
+paid job. Saved legacy checkbox arguments remain for graph compatibility only.
 
 Reference roles/counts and controls follow the selected schema; unsupported
 connections stay attached and produce a useful validation error instead of being
@@ -128,6 +130,13 @@ uploads and LLM execution are not implemented. Generated output quality and paid
 end-to-end execution remain unverified.
 
 ## Credits and utility nodes
+
+Each generation node has a display-only credit receipt. It shows the last
+returned quote, model/time and optional cap. Generate also reports the balance
+checked before submission when that check is reached. A positive cap or low
+balance can stop submission while leaving a readable receipt and no task ID;
+downstream result nodes wait instead of trying to retrieve a nonexistent task.
+An estimate is not the final charge, and a displayed balance is historical.
 
 - **Connection Status** reads safe local configuration without contacting CRUN.
 - **Credits** reads balance and prints it in Comfy's console.

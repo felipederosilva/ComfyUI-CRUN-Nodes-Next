@@ -25,9 +25,14 @@ adapters and verified paid execution are separate readiness levels.
 - [x] 62 focused image/video family nodes with version dropdowns covering 162
   operations. Per-model nodes remain under Advanced/Catalog for existing graphs.
 - [x] Selected-model controls: choices, numeric ranges and reference requirements;
-  advanced technical/URL controls collapsed; execution permissions reset on change.
-- [x] Recognized native IMAGE/MASK roles with ordered references and explicit
-  upload permission. Prepare remains offline; native estimates require opt-in upload.
+  advanced technical/URL controls collapsed; model changes return to Prepare.
+- [x] Recognized native IMAGE/MASK roles with ordered references. In 0.3.2,
+  Estimate uploads them for a quote; Generate uploads and submits a paid task.
+  Prepare remains offline, with no extra upload/paid checkboxes.
+- [x] Optional credit cap under Advanced: 0 disables that cap, while existing
+  positive limits remain intact across model changes and updates.
+- [x] Display-only credit receipts under generation nodes: last quote, model/time,
+  optional cap, checked balance when available, and a clear no-submission outcome.
 - [x] Credential/content-scoped, memory-only upload cache with a 30-minute TTL.
 - [x] Existing-task Image/Video Result retrieval: bounded polling/download,
   durable files in output/CRUNResults and native Comfy IMAGE/VIDEO outputs.

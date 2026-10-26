@@ -32,7 +32,7 @@ class CRUNGetImageResult:
                 blocked = ExecutionBlocker(None)
             except ImportError:
                 blocked = None  # Offline inspection without a Comfy executor.
-            return {"ui": {"text": ["No task submitted. Upstream is in prepare/estimate; native preview is waiting for a task ID."]},
+            return {"ui": {"text": ["No task submitted. Upstream is in prepare/estimate or blocked by its optional cap/balance; native preview is waiting for a task ID."]},
                     "result": (blocked, "", -1.0, "")}
         result = load_result(task_id, kind=self.KIND, result_index=result_index,
                              timeout_seconds=timeout_seconds, poll_interval=poll_interval)

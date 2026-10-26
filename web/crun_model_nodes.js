@@ -5,6 +5,8 @@ import { app } from "../../scripts/app.js";
 const states = new WeakMap();
 const CONTROLS = new Set(["model", "crun_mode", "crun_allow_upload", "crun_allow_paid_generation", "crun_max_credits", "crun_model_help"]);
 const OPTION_KEYS = ["values", "min", "max", "step", "step2", "round", "precision", "tooltip", "default"];
+const TECHNICAL_FIELDS = new Set(["byteplus_fallback", "direct_byteplus", "input_compliance", "output_compliance", "content_moderation", "moderation", "disable_safety_filter", "callback_url"]);
+const ACTION_HELP = "Prepare stays local. Estimate uploads connected references and requests a price. Generate uploads references and creates a paid task.";
 
 function inputDefinitions(nodeData) {
     return { ...(nodeData?.input?.required || {}), ...(nodeData?.input?.optional || {}) };
@@ -143,7 +145,7 @@ function capabilityText(profile, warnings, changed) {
     if (profile.capability_text || profile.description) lines.push(profile.capability_text || profile.description);
     if (profile.model_id) lines.push(`Model: ${profile.model_id}`);
     if (profile.generation_supported === false) lines.push("This operation is currently prepare-only.");
-    lines.push("Prepare is offline. Upload permission is separate from permission to generate.");
+    lines.push(ACTION_HELP);
     if (warnings.length) lines.push(...warnings);
     if (changed.length) lines.push(`Updated for this model: ${changed.join(", ")}. Review before generating.`);
     return lines.join("\n");
@@ -199,7 +201,26 @@ export function toggleAdvancedControls(node) {
         state.advancedButton.textContent = state.showAdvanced ? "Hide advanced controls" : "Show advanced controls";
         state.advancedButton.setAttribute("aria-expanded", String(state.showAdvanced));
     }
-    applyFamilyProfile(node, { reason: "advanced" });
+    refreshNodeControls(node, { reason: "advanced" });
+}
+
+function simpleExecutionControls(node, state) {
+    for (const name of ["crun_allow_upload", "crun_allow_paid_generation"]) {
+        const widget = node.widgets?.find(item => item.name === name);
+        if (widget && state.base.has(widget)) visibleWidget(widget, false, state.base.get(widget));
+    }
+    const cap = node.widgets?.find(item => item.name === "crun_max_credits");
+    if (cap && state.base.has(cap)) {
+        visibleWidget(cap, state.showAdvanced, state.base.get(cap));
+        cap.label = "Optional credit cap (0 = none)";
+        cap.tooltip = "Optional ceiling for the estimated CRUN credits. Zero disables the optional cap; an existing positive cap is retained.";
+    }
+    const mode = node.widgets?.find(item => item.name === "crun_mode");
+    if (mode) mode.label = "Action";
+}
+
+function refreshNodeControls(node, options = {}) {
+    return states.get(node)?.kind === "legacy" ? applyLegacyControls(node) : applyFamilyProfile(node, options);
 }
 
 export function applyFamilyProfile(node, { reason = "refresh" } = {}) {
@@ -217,11 +238,11 @@ export function applyFamilyProfile(node, { reason = "refresh" } = {}) {
         const warnings = [];
         const switchModel = reason === "model-change" && state.model !== selector.value;
         if (switchModel) {
-            for (const [name, value] of [["crun_mode", "prepare"], ["crun_allow_upload", false], ["crun_allow_paid_generation", false], ["crun_max_credits", 0]]) {
+            for (const [name, value] of [["crun_mode", "prepare"], ["crun_allow_upload", false], ["crun_allow_paid_generation", false]]) {
                 const widget = node.widgets?.find(item => item.name === name);
                 if (widget) widget.value = value;
             }
-            warnings.push("Model changed: execution reset to prepare. Review this model before enabling paid generation.");
+            warnings.push("Model changed: execution reset to prepare. Review the selected model before generating; your optional credit cap was retained.");
         }
         for (const widget of node.widgets || []) {
             if (CONTROLS.has(widget.name) || !state.managed.has(widget.name)) continue;
@@ -247,13 +268,7 @@ export function applyFamilyProfile(node, { reason = "refresh" } = {}) {
                 }
             }
         }
-        const mode = node.widgets?.find(widget => widget.name === "crun_mode")?.value || "prepare";
-        for (const name of ["crun_allow_paid_generation", "crun_max_credits"]) {
-            const widget = node.widgets?.find(item => item.name === name);
-            if (widget && state.base.has(widget)) visibleWidget(widget, mode === "generate", state.base.get(widget));
-        }
-        const upload = node.widgets?.find(item => item.name === "crun_allow_upload");
-        if (upload && state.base.has(upload)) visibleWidget(upload, mode !== "prepare", state.base.get(upload));
+        simpleExecutionControls(node, state);
         const inputs = profile.inputs || {};
         for (const input of node.inputs || []) {
             if (!state.nativeInputs.has(input.name)) continue;
@@ -278,7 +293,7 @@ export function attachFamilyControls(node, nodeData) {
     const definitions = inputDefinitions(nodeData);
     const managed = new Set(Object.values(profiles).flatMap(profile => Object.keys(profile.fields || {})));
     const nativeInputs = new Set(Object.values(profiles).flatMap(profile => Object.keys(profile.inputs || {})));
-    const state = { profiles, managed, nativeInputs, base: new Map(), inputLabels: new Map(), linkedValues: new Map(), model: null, help: null, applying: false, showAdvanced: false, advancedButton: null };
+    const state = { kind: "family", profiles, managed, nativeInputs, base: new Map(), inputLabels: new Map(), linkedValues: new Map(), model: null, help: null, applying: false, showAdvanced: false, advancedButton: null };
     states.set(node, state);
     for (const widget of node.widgets || []) state.base.set(widget, rememberWidget(widget, definitions[widget.name]));
     for (const input of node.inputs || []) state.inputLabels.set(input.name, input.label || input.name);
@@ -300,31 +315,80 @@ export function attachFamilyControls(node, nodeData) {
     return state;
 }
 
+export function applyLegacyControls(node) {
+    const state = states.get(node);
+    if (!state || state.kind !== "legacy") return null;
+    for (const widget of node.widgets || []) {
+        if (!state.advancedFields.has(widget.name) || !state.base.has(widget)) continue;
+        visibleWidget(widget, state.showAdvanced, state.base.get(widget));
+        linkedWidgetVisibility(widget, state.showAdvanced, state);
+    }
+    simpleExecutionControls(node, state);
+    drawHelp(node, state, ACTION_HELP);
+    node.setDirtyCanvas?.(true, true);
+    return state;
+}
+
+export function attachLegacyControls(node, nodeData) {
+    if (states.has(node)) return states.get(node);
+    const definitions = inputDefinitions(nodeData);
+    if (!definitions.crun_mode) return null;
+    const mediaWires = new Set();
+    for (const spec of Object.values(definitions)) {
+        if (!["IMAGE", "MASK", "VIDEO", "AUDIO"].includes(spec?.[0])) continue;
+        const options = spec[1] || {};
+        const wire = options.crun_wire_name || /^Native (?:image|mask) reference for ([A-Za-z0-9_]+)\./.exec(options.tooltip || "")?.[1];
+        if (wire) mediaWires.add(wire);
+    }
+    const advancedFields = new Set();
+    for (const [name, spec] of Object.entries(definitions)) {
+        if (["IMAGE", "MASK", "VIDEO", "AUDIO"].includes(spec?.[0]) || CONTROLS.has(name)) continue;
+        if (spec?.[1]?.advanced || TECHNICAL_FIELDS.has(name) || mediaWires.has(name) || mediaWires.has(name.replace(/_urls?$/, ""))) advancedFields.add(name);
+    }
+    const state = { kind: "legacy", advancedFields, base: new Map(), linkedValues: new Map(), showAdvanced: false, help: null, advancedButton: null };
+    states.set(node, state);
+    for (const widget of node.widgets || []) state.base.set(widget, rememberWidget(widget, definitions[widget.name]));
+    const mode = node.widgets?.find(item => item.name === "crun_mode");
+    if (mode) {
+        const original = mode.callback;
+        mode.callback = function () {
+            const result = original?.apply(this, arguments);
+            applyLegacyControls(node);
+            return result;
+        };
+    }
+    makeHelp(node, state);
+    applyLegacyControls(node);
+    return state;
+}
+
 app.registerExtension({
     name: "CRUN.Next.ModelFamilies",
     beforeRegisterNodeDef(nodeType, nodeData) {
-        if (!familyProfiles(nodeData)) return;
+        const profiles = familyProfiles(nodeData);
+        if (!profiles && !(String(nodeData?.name || "").startsWith("CRUN_") && inputDefinitions(nodeData).crun_mode)) return;
+        const attach = profiles ? attachFamilyControls : attachLegacyControls;
         const created = nodeType.prototype.onNodeCreated;
         nodeType.prototype.onNodeCreated = function () {
             const result = created?.apply(this, arguments);
-            attachFamilyControls(this, nodeData);
+            attach(this, nodeData);
             return result;
         };
         const configure = nodeType.prototype.onConfigure;
         nodeType.prototype.onConfigure = function () {
             const result = configure?.apply(this, arguments);
-            attachFamilyControls(this, nodeData);
-            applyFamilyProfile(this, { reason: "configure" });
+            attach(this, nodeData);
+            refreshNodeControls(this, { reason: "configure" });
             return result;
         };
         const connections = nodeType.prototype.onConnectionsChange;
         nodeType.prototype.onConnectionsChange = function () {
             const result = connections?.apply(this, arguments);
-            applyFamilyProfile(this, { reason: "connections" });
+            refreshNodeControls(this, { reason: "connections" });
             return result;
         };
     },
     loadedGraphNode(node) {
-        applyFamilyProfile(node, { reason: "loaded" });
+        refreshNodeControls(node, { reason: "loaded" });
     },
 });

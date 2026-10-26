@@ -309,8 +309,8 @@ def make_node(entry: dict) -> type:
     provider = str(frozen.get("provider") or "CRUN").replace("/", " - ")
     category = f"CRUN Next/{group}/{provider}"
     description = (f"{frozen.get('title') or frozen.get('model')} — {frozen.get('model')}. "
-                   "Prepare is offline. Estimate does not generate. Generate needs explicit permission and a positive budget. "
-                   "Connect native IMAGE/MASK references where provided. Upload requires explicit permission; prepare stays offline. "
+                   "Prepare is offline. Estimate uploads required references and quotes the cost. Generate uploads references and submits a paid task. "
+                   "Connect native IMAGE/MASK references where provided. A positive optional credit cap is respected; zero disables it. "
                    f"Documentation: {frozen.get('documentation_url', 'https://docs.crun.ai/')}")
     if not frozen.get("generation_supported", False):
         description += " This operation is prepare-only until its protocol is implemented."
@@ -318,9 +318,9 @@ def make_node(entry: dict) -> type:
     @classmethod
     def input_types(cls):
         required = {
-            CONTROL_MODE: (MODES.copy(), {"default": "prepare"}),
-            CONTROL_ALLOW: ("BOOLEAN", {"default": False, "tooltip": "Allow a paid generation only when mode=generate."}),
-            CONTROL_BUDGET: ("FLOAT", {"default": 0.0, "min": 0.0, "step": 0.1, "tooltip": "Maximum CRUN credits for this task. Zero prevents generation."}),
+            CONTROL_MODE: (MODES.copy(), {"default": "prepare", "tooltip": "Prepare: local only. Estimate: upload connected references and quote. Generate: upload references and submit a paid task."}),
+            CONTROL_ALLOW: ("BOOLEAN", {"default": False, "tooltip": "Legacy compatibility field. The selected action controls submission; this checkbox is hidden."}),
+            CONTROL_BUDGET: ("FLOAT", {"default": 0.0, "min": 0.0, "step": 0.1, "tooltip": "Optional estimate cap under Advanced. Zero disables the cap; an existing positive limit is always respected."}),
         }
         optional = {}
         for widget_name, wire_name, schema, is_required in fields:
@@ -330,7 +330,7 @@ def make_node(entry: dict) -> type:
         if not fields:
             optional["advanced_input_json"] = ("STRING", {"default": "{}", "multiline": True, "tooltip": "No parameter schema was available. Consult documentation; prepare-only unless supported."})
         if bindings:
-            optional[CONTROL_UPLOAD] = ("BOOLEAN", {"default": False, "tooltip": "Allow connected images/masks to be uploaded to CRUN when estimating or generating. Prepare never uploads."})
+            optional[CONTROL_UPLOAD] = ("BOOLEAN", {"default": False, "tooltip": "Legacy compatibility field. Estimate/Generate upload connected references as required; Prepare stays offline. This checkbox is hidden."})
         for binding in bindings:
             optional[binding["socket"]] = ("MASK" if binding["kind"] == "mask" else "IMAGE", {"tooltip": f"Native {binding['kind']} reference for {binding['wire_name']}. Reference order is preserved. Use either native connections or the URL fallback for this field."})
         result = {"required": required}
@@ -341,10 +341,6 @@ def make_node(entry: dict) -> type:
     def execute(self, crun_mode="prepare", crun_allow_paid_generation=False, crun_max_credits=0.0, crun_allow_upload=False, **kwargs):
         if crun_mode not in MODES:
             raise ValueError("Choose prepare, estimate or generate.")
-        if not isinstance(crun_allow_paid_generation, bool):
-            raise ValueError("Paid generation permission must be a boolean.")
-        if not isinstance(crun_allow_upload, bool):
-            raise ValueError("Upload permission must be a boolean.")
         if isinstance(crun_max_credits, bool) or not isinstance(crun_max_credits, (int, float)) or not math.isfinite(crun_max_credits) or crun_max_credits < 0:
             raise ValueError("Maximum credits must be a finite nonnegative number.")
         values = {}

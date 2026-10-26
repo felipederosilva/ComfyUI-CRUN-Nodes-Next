@@ -1,6 +1,6 @@
 [project]
 name = "crun-ai-nodes-next"
-version = "0.3.1"
+version = "0.3.2"
 description = "Independent schema-aware CRUN models, Effects, AI Tools and safe starter workflows for ComfyUI."
 readme = "README.md"
 requires-python = ">=3.10"

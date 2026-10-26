@@ -88,7 +88,7 @@ test("created node exposes only selected model controls, keeping native inputs",
     assert.ok(node.size[0] >= 440);
 });
 
-test("model changes update ranges and dropdowns, visibly reset invalid values and disarm execution", () => {
+test("model changes update choices and reset to prepare while retaining an existing positive optional cap", () => {
     const node = makeNode();
     ui.attachFamilyControls(node, definition());
     change(node, "resolution", "1080p");
@@ -106,7 +106,7 @@ test("model changes update ranges and dropdowns, visibly reset invalid values an
     assert.equal(byName(node, "crun_mode").value, "prepare");
     assert.equal(byName(node, "crun_allow_paid_generation").value, false);
     assert.equal(byName(node, "crun_allow_upload").value, false);
-    assert.equal(byName(node, "crun_max_credits").value, 0);
+    assert.equal(byName(node, "crun_max_credits").value, 99);
     assert.equal(byName(node, "prompt").value, "A fictional scene");
     assert.match(node._crunCapabilityText, /execution reset to prepare/);
     assert.match(node._crunCapabilityText, /resolution/);
@@ -140,18 +140,76 @@ test("workflow restore keeps supported values and flags invalid saved values wit
     assert.equal(byName(node, "duration").options.max, 15);
 });
 
-test("mode change reveals paid controls only for explicit generation", () => {
+test("actions hide obsolete checkboxes and leave the optional cap in advanced controls", () => {
     const node = makeNode();
     ui.attachFamilyControls(node, definition());
     change(node, "crun_mode", "estimate");
     assert.equal(byName(node, "crun_allow_paid_generation").hidden, true);
-    assert.equal(byName(node, "crun_allow_upload").hidden, false);
-    change(node, "crun_mode", "generate");
-    assert.equal(byName(node, "crun_allow_paid_generation").hidden, false);
-    assert.equal(byName(node, "crun_max_credits").hidden, false);
-    change(node, "crun_mode", "prepare");
-    assert.equal(byName(node, "crun_max_credits").hidden, true);
     assert.equal(byName(node, "crun_allow_upload").hidden, true);
+    change(node, "crun_mode", "generate");
+    assert.equal(byName(node, "crun_allow_paid_generation").hidden, true);
+    assert.equal(byName(node, "crun_max_credits").hidden, true);
+    ui.toggleAdvancedControls(node);
+    assert.equal(byName(node, "crun_allow_upload").hidden, true);
+    assert.equal(byName(node, "crun_allow_paid_generation").hidden, true);
+    assert.equal(byName(node, "crun_max_credits").hidden, false);
+    assert.equal(byName(node, "crun_max_credits").label, "Optional credit cap (0 = none)");
+    change(node, "crun_mode", "prepare");
+    assert.equal(byName(node, "crun_max_credits").hidden, false);
+    assert.equal(byName(node, "crun_allow_upload").hidden, true);
+    assert.match(node._crunCapabilityText, /Estimate uploads connected references and requests a price/);
+    assert.match(node._crunCapabilityText, /Generate uploads references and creates a paid task/);
+});
+
+test("legacy model nodes get the same simple actions and advanced optional cap without changing saved values or sockets", () => {
+    const node = makeNode();
+    node.widgets = node.widgets.filter(widget => !["model", "duration", "resolution", "generate_audio"].includes(widget.name));
+    byName(node, "crun_max_credits").value = 100;
+    const technical = widget("byteplus_fallback", true, "toggle");
+    node.widgets.push(technical);
+    const data = { name: "CRUN_Next_Legacy_Example", input: { required: {
+        prompt: ["STRING", { default: "" }], image_url: ["STRING", { default: "" }],
+        crun_mode: [["prepare", "estimate", "generate"], { default: "prepare" }],
+        crun_allow_upload: ["BOOLEAN", { default: false }], crun_allow_paid_generation: ["BOOLEAN", { default: false }],
+        crun_max_credits: ["FLOAT", { default: 0 }], byteplus_fallback: ["BOOLEAN", { default: false }],
+    }, optional: { first_frame: ["IMAGE", { crun_wire_name: "image_url" }] } } };
+    ui.attachLegacyControls(node, data);
+    assert.equal(byName(node, "image_url").hidden, true);
+    assert.equal(technical.hidden, true);
+    assert.equal(byName(node, "crun_max_credits").hidden, true);
+    assert.equal(byName(node, "crun_max_credits").value, 100);
+    assert.equal(node.inputs[0].link, 1);
+    change(node, "crun_mode", "generate");
+    assert.equal(byName(node, "crun_allow_upload").hidden, true);
+    assert.equal(byName(node, "crun_allow_paid_generation").hidden, true);
+    ui.toggleAdvancedControls(node);
+    assert.equal(byName(node, "image_url").hidden, false);
+    assert.equal(technical.hidden, false);
+    assert.equal(technical.value, true);
+    assert.equal(byName(node, "crun_max_credits").hidden, false);
+    assert.equal(byName(node, "crun_max_credits").value, 100);
+    extension.loadedGraphNode(node);
+    assert.equal(byName(node, "crun_max_credits").value, 100);
+});
+
+test("legacy lifecycle hooks attach only to CRUN execution nodes and preserve widget serialization positions", () => {
+    const data = { name: "CRUN_Next_Fixed_Model", input: definition().input };
+    delete data.input.required.model;
+    class Type {
+        onNodeCreated() { Object.assign(this, makeNode()); this.widgets = this.widgets.filter(widget => widget.name !== "model"); }
+    }
+    extension.beforeRegisterNodeDef(Type, data);
+    const node = new Type(); node.onNodeCreated();
+    const names = node.widgets.map(widget => widget.name);
+    byName(node, "crun_max_credits").value = 100;
+    node.onConfigure();
+    assert.deepEqual(node.widgets.map(widget => widget.name), names);
+    assert.equal(byName(node, "crun_max_credits").value, 100);
+    assert.equal(byName(node, "crun_allow_upload").hidden, true);
+    class Other { onNodeCreated() { return "unchanged"; } }
+    const original = Other.prototype.onNodeCreated;
+    extension.beforeRegisterNodeDef(Other, { ...data, name: "Other_Plugin" });
+    assert.equal(Other.prototype.onNodeCreated, original);
 });
 
 test("advanced URL fallback controls stay secondary without hiding native image connectors", () => {

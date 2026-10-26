@@ -305,7 +305,7 @@ def make_family_node(family: dict) -> type:
         "CATEGORY": f"CRUN Next/{kind}/{family['family']}",
         "FUNCTION": "execute", "RETURN_TYPES": ("STRING", "STRING", "FLOAT"),
         "RETURN_NAMES": ("result_json", "task_id", "credits"), "OUTPUT_NODE": True,
-        "DESCRIPTION": title + ". Select a version; only that model's documented controls apply. Native image references are uploaded only with explicit permission. Preparation stays offline.",
+        "DESCRIPTION": title + ". Select a version; only that model's documented controls apply. Prepare stays offline. Estimate uploads required references and quotes the cost; Generate uploads references and submits a paid task. An optional positive cap is respected; zero disables it.",
         "INPUT_TYPES": input_types, "execute": execute, "CRUN_FAMILY": deepcopy(family),
         "VALIDATE_INPUTS": classmethod(generated.validate_node_inputs),
         "CRUN_PROFILES": deepcopy(profiles),
