@@ -163,6 +163,23 @@ class ClientTests(unittest.TestCase):
             self.assertIn("No generation", str(raised.exception))
             self.assertEqual(storage.request.call_count, 1)
 
+    def test_mp4_and_wav_use_the_same_credential_free_storage_contract(self):
+        ticket = {"file_url": "https://cdn.example.com/media", "presigned_url": "https://store.example.com/upload"}
+        for content, mime, extension in ((b"\x00\x00\x00\x18ftypisomfixture", "video/mp4", ".mp4"),
+                                         (b"RIFF" + b"\x00" * 4 + b"WAVE" + b"\x00" * 32, "audio/wav", ".wav")):
+            client, api = self.client(ticket)
+            storage = MagicMock()
+            storage.__enter__.return_value = storage
+            storage.request.return_value = Response(status=200)
+            with patch("crun.client.requests.Session", return_value=storage):
+                self.assertEqual(client.upload_bytes(content, mime_type=mime, extension=extension), ticket["file_url"])
+            self.assertEqual(api.calls[0][1]["params"], {"content_type": mime, "ext": extension})
+            self.assertEqual(storage.request.call_args.kwargs["headers"], {"Content-Type": mime})
+            self.assertFalse(storage.trust_env)
+            self.assertEqual(storage.request.call_count, 1)
+            with self.assertRaises(CRUNError):
+                client.upload_bytes(content, mime_type="image/png", extension=".png")
+
     def test_ambiguous_submission_never_retries_or_suggests_resubmit(self):
         for response in [requests.Timeout("PRIVATE"), Response({}, 500), Response({}, 502), Response({"code": 500, "data": {}}), Response(ValueError("PRIVATE"))]:
             with self.subTest(response=type(response).__name__):

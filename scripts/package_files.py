@@ -1,7 +1,7 @@
 """Shared release/install allowlist. Never collect user credentials or caches."""
 from pathlib import Path
 
-ROOT_FILES = ("__init__.py", "nodes.py", "generated_nodes.py", "family_nodes.py", "result_nodes.py", "pyproject.toml", "requirements.txt", "LICENSE", "README.md", "ROADMAP.md", "SECURITY.md", "VALIDATION.md")
+ROOT_FILES = ("__init__.py", "nodes.py", "generated_nodes.py", "family_nodes.py", "creative_nodes.py", "result_nodes.py", "pyproject.toml", "requirements.txt", "LICENSE", "README.md", "ROADMAP.md", "SECURITY.md", "VALIDATION.md")
 
 
 def package_files(root: Path) -> list[Path]:

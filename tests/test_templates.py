@@ -6,6 +6,7 @@ import unittest
 from unittest.mock import patch
 
 import generated_nodes as generated
+import creative_nodes as creative
 from test_generated_nodes import sample_entry
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -20,15 +21,18 @@ sync_spec.loader.exec_module(effects_sync)
 class TemplateTests(unittest.TestCase):
     def test_workflow_is_safe_and_matches_generated_node_definition(self):
         entry = sample_entry()
-        node = generated.make_node(entry)
+        node = creative.creative_mappings([entry])[0][creative.media_node_id(entry)]
         workflow = builder.workflow_for(entry, node, "CRUN • Sample")
         self.assertEqual(workflow["version"], 0.4)
         self.assertTrue(all(link[5] == 'IMAGE' for link in workflow['links']))
         self.assertTrue(any(node['type'] == 'LoadImage' for node in workflow['nodes']))
         graph_node = workflow["nodes"][0]
-        self.assertEqual(graph_node["type"], generated.node_id_for(entry))
+        self.assertEqual(graph_node["type"], creative.media_node_id(entry))
+        self.assertEqual(graph_node["outputs"][0]["type"], "IMAGE")
+        self.assertTrue(any(node["type"] == "PreviewImage" for node in workflow["nodes"]))
+        self.assertFalse(any("Get_Image_Result" in node["type"] for node in workflow["nodes"]))
         self.assertEqual(graph_node["widgets_values"][:3], ["prepare", False, 0])
-        self.assertEqual(workflow["nodes"][1]["type"], "Note")
+        self.assertTrue(any(node["type"] == "Note" for node in workflow["nodes"]))
         self.assertFalse(workflow["extra"]["crun_next"]["generation_tested"])
 
     def test_names_are_short_stable_and_unique_even_with_same_title(self):
@@ -59,7 +63,7 @@ class TemplateTests(unittest.TestCase):
         entries = builder.bundled_entries()
         self.assertEqual(manifest["total_templates"], len(entries))
         self.assertEqual({r["entry_id"] for r in manifest["entries"]}, {e["id"] for e in entries})
-        node_ids = {generated.node_id_for(entry) for entry in entries}
+        node_ids = {creative.media_node_id(entry) if creative.output_kind(entry) else generated.node_id_for(entry) for entry in entries}
         for record in manifest["entries"]:
             workflow_path = ROOT / "example_workflows" / record["path"]
             self.assertTrue(workflow_path.is_file())
@@ -73,6 +77,59 @@ class TemplateTests(unittest.TestCase):
         paths = {record["path"] for record in manifest["entries"]}
         self.assertTrue(all(record["path"] in paths for record in manifest["catalog_record_coverage"]))
         self.assertFalse((ROOT / "example_workflows" / "manifest.json").exists())
+
+    def test_every_creative_recipe_has_a_direct_native_media_sink(self):
+        manifest = json.loads((ROOT / "data/workflow_manifest.json").read_text(encoding="utf-8"))
+        for record in manifest["entries"]:
+            workflow = json.loads((ROOT / "example_workflows" / record["path"]).read_text(encoding="utf-8"))
+            nodes = {node["id"]: node for node in workflow["nodes"]}
+            if record["output_kind"]:
+                sink = next(node for node in nodes.values() if node["type"] == record["preview_node"])
+                media_link = next(link for link in workflow["links"] if link[3] == sink["id"])
+                self.assertEqual(media_link[1:3], [1, 0])
+                self.assertEqual(media_link[-1], record["output_kind"].upper())
+                self.assertEqual(nodes[1]["outputs"][0]["type"], media_link[-1])
+            else:
+                self.assertEqual(record["workflow_type"], "advanced_api_preparation")
+                note = next(node for node in nodes.values() if node["type"] == "Note")
+                self.assertIn("ADVANCED API PREPARATION ONLY", note["widgets_values"][0])
+            for link_id, source, source_slot, target, target_slot, media in workflow["links"]:
+                self.assertIn(link_id, nodes[source]["outputs"][source_slot]["links"])
+                self.assertEqual(nodes[target]["inputs"][target_slot]["link"], link_id)
+                self.assertEqual(nodes[source]["outputs"][source_slot]["type"], media)
+                self.assertEqual(nodes[target]["inputs"][target_slot]["type"], media)
+
+    def test_motion_reference_recipe_uses_load_video_and_native_video_link(self):
+        entry = next(entry for entry in builder.bundled_entries() if entry.get("model") == "kling/v3-motion-control")
+        node = creative.creative_mappings([entry])[0][creative.media_node_id(entry)]
+        workflow = builder.workflow_for(entry, node, "CRUN Motion")
+        loaders = [node for node in workflow["nodes"] if node["type"] == "LoadVideo"]
+        self.assertEqual(len(loaders), 1)
+        self.assertEqual(loaders[0]["widgets_values"], [""])
+        video_link = next(link for link in workflow["links"] if link[1] == loaders[0]["id"])
+        self.assertEqual(video_link[-1], "VIDEO")
+        target = workflow["nodes"][0]["inputs"][video_link[4]]
+        self.assertEqual(target["name"], "motion_video")
+
+    def test_fixed_effect_recipe_keeps_every_required_image_in_order(self):
+        entry = generated._effect_entry("bytedance", {"id": "two_image_fixture", "name": "Two images", "required_images": 2, "credits": [{"resolution": "720p", "credits": 3}], "raw": {}})
+        node = creative.creative_mappings([entry])[0][creative.media_node_id(entry)]
+        workflow = builder.workflow_for(entry, node, "Two images")
+        links = [link for link in workflow["links"] if link[3] == 1]
+        ports = workflow["nodes"][0]["inputs"]
+        self.assertEqual([ports[link[4]]["name"] for link in links], ["image_1", "image_2"])
+        self.assertEqual(sum(node["type"] == "LoadImage" for node in workflow["nodes"]), 2)
+
+    def test_inpaint_recipe_has_a_native_black_white_mask_path(self):
+        entry = next(entry for entry in builder.bundled_entries() if entry.get("model") == "image-inpaint")
+        node = creative.creative_mappings([entry])[0][creative.media_node_id(entry)]
+        workflow = builder.workflow_for(entry, node, "Inpaint")
+        conversion = next(node for node in workflow["nodes"] if node["type"] == "ImageToMask")
+        self.assertEqual(conversion["widgets_values"], ["red"])
+        mask_link = next(link for link in workflow["links"] if link[1] == conversion["id"])
+        self.assertEqual(mask_link[-1], "MASK")
+        target = workflow["nodes"][0]["inputs"][mask_link[4]]
+        self.assertEqual(target["name"], "mask")
 
     def test_effects_pagination_reads_all_records_not_just_first_page(self):
         class Client:

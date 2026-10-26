@@ -150,10 +150,10 @@ def _record(record: dict) -> None:
 
 
 def _native_inputs(entry: dict, inputs: dict, native_media: list | None):
-    """Encode and validate all references locally before any provider action."""
+    """Materialize and validate every reference locally before provider actions."""
     if not native_media:
         return deepcopy(inputs), [], []
-    from .media import image_batch_to_pngs, mask_batch_to_images
+    from .media import image_batch_to_pngs, mask_batch_to_images, video_to_upload, audio_to_upload
     schema = entry.get("inputs") or entry.get("input_schema") or {}
     properties = schema.get("properties", {})
     if isinstance(properties.get("input"), dict):
@@ -164,23 +164,34 @@ def _native_inputs(entry: dict, inputs: dict, native_media: list | None):
     if "last_frame" in sockets and "first_frame" not in sockets:
         raise ValueError("Connect a first_frame before using last_frame.")
     for item in native_media:
-        wire, socket = item["wire_name"], item["socket"]
+        wire, socket, kind = item["wire_name"], item["socket"], item["kind"]
         if wire not in properties:
-            raise ValueError("This model does not support the connected image input.")
+            raise ValueError("This model does not support the connected native reference.")
         if wire not in groups and values.get(wire) not in (None, "", [], {}):
-            raise ValueError(f"{wire}: choose native image connections or URL input, not both.")
-        image = mask_batch_to_images(item["value"]) if item["kind"] == "mask" else item["value"]
-        pngs = image_batch_to_pngs(image)
-        shape = tuple(image.shape)
-        height, width, channels = shape[-3:]
-        hashes = [hashlib.sha256(data).hexdigest() for data in pngs]
-        info = {"count": len(pngs), "height": int(height), "width": int(width), "channels": int(channels), "sha256": hashes,
-                "upload_required": True, "placeholders": [f"https://crun-next.invalid/local/{value}.png" for value in hashes]}
-        if not item["many"] and info["count"] != 1:
-            raise ValueError(f"{socket}: connect exactly one image; use separate reference sockets for frame pairs.")
+            raise ValueError(f"{wire}: choose native reference connections or URL input, not both.")
+        if kind in {"image", "mask"}:
+            image = mask_batch_to_images(item["value"]) if kind == "mask" else item["value"]
+            blobs = image_batch_to_pngs(image)
+            height, width, channels = tuple(image.shape)[-3:]
+            info = {"width": int(width), "height": int(height), "channels": int(channels)}
+            mime_type, extension = "image/png", ".png"
+        elif kind in {"video", "audio"}:
+            if item.get("index", 0) != len(groups.get(wire, [])):
+                raise ValueError(f"{socket}: connect ordered references starting with the first socket; do not leave a gap.")
+            data, info = (video_to_upload if kind == "video" else audio_to_upload)(item["value"])
+            blobs = [data]
+            mime_type, extension = info["mime_type"], info["extension"]
+        else:
+            raise ValueError("Unsupported native media type.")
+        hashes = [hashlib.sha256(data).hexdigest() for data in blobs]
+        info.update(count=len(blobs), sha256=hashes, byte_count=sum(len(data) for data in blobs),
+                    byte_counts=[len(data) for data in blobs], upload_required=True,
+                    placeholders=[f"https://crun-next.invalid/local/{digest}{extension}" for digest in hashes])
+        if not item["many"] and len(blobs) != 1:
+            raise ValueError(f"{socket}: connect exactly one {kind}; separate reference sockets retain ordering.")
         groups.setdefault(wire, []).extend(info["placeholders"])
-        metadata.append({**info, "socket": socket, "wire_name": wire, "kind": item["kind"]})
-        encoded.append({"wire_name": wire, "pngs": pngs})
+        metadata.append({**info, "socket": socket, "wire_name": wire, "kind": kind})
+        encoded.append({"wire_name": wire, "pngs": blobs, "mime_type": mime_type, "extension": extension})
     primary = next((info for info in metadata if info["socket"] in {"image", "first_frame"}), None)
     mask = next((info for info in metadata if info["kind"] == "mask"), None)
     if primary and mask and (mask["width"], mask["height"]) != (primary["width"], primary["height"]):
@@ -193,7 +204,7 @@ def _native_inputs(entry: dict, inputs: dict, native_media: list | None):
         elif len(references) == 1:
             values[wire] = references[0]
         else:
-            raise ValueError(f"{wire}: this model accepts exactly one image.")
+            raise ValueError(f"{wire}: this model accepts exactly one reference.")
     return values, encoded, metadata
 
 
@@ -204,12 +215,15 @@ def run_entry(entry: dict, inputs: dict, mode: str, allow_paid_generation: bool 
         raise ValueError("Local preparation placeholders cannot be sent to CRUN. Connect the original images or supply actual public reference URLs.")
     prepared_inputs, encoded_media, media_info = _native_inputs(entry, inputs, native_media)
     payload, errors = build_payload(entry, prepared_inputs)
+    from .model_validation import validate_model_inputs, validate_native_media
+    errors.extend(validate_model_inputs(entry, prepared_inputs))
+    errors.extend(validate_native_media(entry, media_info, inputs=prepared_inputs))
     result = {"mode": mode, "entry_id": entry.get("id"), "model": entry.get("model"), "payload": payload,
               "task_id": "", "credits": -1.0, "credit_state": "unavailable", "status": "draft", "errors": errors,
               "warnings": [], "native_media": media_info, "credit_limit": max_credits,
               "quoted_at": None, "balance_before": None}
     if media_info:
-        result["warnings"].append("Connected images remain local in prepare mode. Selecting estimate or generate uploads the references needed for that action.")
+        result["warnings"].append("Connected references remain local in prepare mode. Selecting estimate or generate uploads the references needed for that action.")
     if mode == "prepare":
         return result
     if errors:
@@ -224,10 +238,11 @@ def run_entry(entry: dict, inputs: dict, mode: str, allow_paid_generation: bool 
         raise ValueError("CRUN setup incomplete: " + " ".join(missing) + " No CRUN request was made.")
     client = CRUNClient()
     if encoded_media:
-        from .media import upload_pngs
+        from .media import upload_pngs, upload_media_bytes
         uploaded = {}
         for item in encoded_media:
-            uploaded.setdefault(item["wire_name"], []).extend(upload_pngs(client, item["pngs"], allow_upload=True))
+            urls = upload_pngs(client, item["pngs"], allow_upload=True) if item.get("mime_type", "image/png") == "image/png" else upload_media_bytes(client, item["pngs"], mime_type=item["mime_type"], extension=item["extension"], allow_upload=True)
+            uploaded.setdefault(item["wire_name"], []).extend(urls)
         for wire, urls in uploaded.items():
             prepared_inputs[wire] = urls if isinstance(prepared_inputs[wire], list) else urls[0]
         payload, errors = build_payload(entry, prepared_inputs)
@@ -264,7 +279,13 @@ def run_entry(entry: dict, inputs: dict, mode: str, allow_paid_generation: bool 
     # Journal a preflight marker before submission; no credentials or input media.
     marker = {"entry_id": entry.get("id"), "model": payload["model"], "created_at": int(time.time()), "status": "submitting"}
     _record(marker)
+    from .jobs import submission_starting, submission_received
+    submission_starting()
     task_id = client.create_task(payload["model"], payload["input"])
+    try:
+        submission_received(task_id)
+    except Exception:
+        result["warnings"].append("Task accepted, but completion tracking could not be saved. Keep the task ID and do not resubmit.")
     receipt = {**marker, "status": "submitted", "task_id": task_id, "quoted_credits": quote["credits"]}
     try:
         _record(receipt)

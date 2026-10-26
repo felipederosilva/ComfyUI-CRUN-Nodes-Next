@@ -1,120 +1,89 @@
 {
-  "last_node_id": 3,
-  "last_link_id": 1,
+  "last_node_id": 6,
+  "last_link_id": 4,
   "nodes": [
     {
       "id": 1,
-      "type": "CRUN_Next_image_inpaint_f03e302dba95",
+      "type": "CRUN_Next_Media_image_inpaint_f03e302dba95",
       "pos": [
-        570,
-        120
+        440,
+        130
       ],
       "size": [
-        500,
-        526
+        510,
+        700
       ],
       "flags": {},
-      "order": 0,
+      "order": 1,
       "mode": 0,
       "inputs": [
-        {
-          "name": "crun_mode",
-          "type": "COMBO",
-          "widget": {
-            "name": "crun_mode"
-          },
-          "link": null,
-          "slot_index": 0
-        },
-        {
-          "name": "crun_allow_paid_generation",
-          "type": "BOOLEAN",
-          "widget": {
-            "name": "crun_allow_paid_generation"
-          },
-          "link": null,
-          "slot_index": 1
-        },
-        {
-          "name": "crun_max_credits",
-          "type": "FLOAT",
-          "widget": {
-            "name": "crun_max_credits"
-          },
-          "link": null,
-          "slot_index": 2
-        },
-        {
-          "name": "img_urls",
-          "type": "STRING",
-          "widget": {
-            "name": "img_urls"
-          },
-          "link": null,
-          "slot_index": 3
-        },
-        {
-          "name": "mask_url",
-          "type": "STRING",
-          "widget": {
-            "name": "mask_url"
-          },
-          "link": null,
-          "slot_index": 4
-        },
-        {
-          "name": "boxs",
-          "type": "STRING",
-          "widget": {
-            "name": "boxs"
-          },
-          "link": null,
-          "slot_index": 5
-        },
-        {
-          "name": "crun_allow_upload",
-          "type": "BOOLEAN",
-          "widget": {
-            "name": "crun_allow_upload"
-          },
-          "link": null,
-          "slot_index": 6
-        },
         {
           "name": "image",
           "type": "IMAGE",
           "link": 1,
-          "slot_index": 7
+          "slot_index": 0
         },
         {
           "name": "mask",
           "type": "MASK",
-          "link": null,
-          "slot_index": 8
+          "link": 3,
+          "slot_index": 1
         }
       ],
       "outputs": [
         {
-          "name": "result_json",
+          "name": "image",
+          "type": "IMAGE",
+          "links": [
+            4
+          ],
+          "slot_index": 0
+        },
+        {
+          "name": "mask",
+          "type": "MASK",
+          "links": null,
+          "slot_index": 1
+        },
+        {
+          "name": "url",
           "type": "STRING",
           "links": null,
-          "slot_index": 0
+          "slot_index": 2
         },
         {
           "name": "task_id",
           "type": "STRING",
           "links": null,
-          "slot_index": 1
+          "slot_index": 3
         },
         {
-          "name": "credits",
+          "name": "estimated_credits",
           "type": "FLOAT",
           "links": null,
-          "slot_index": 2
+          "slot_index": 4
+        },
+        {
+          "name": "actual_credits",
+          "type": "FLOAT",
+          "links": null,
+          "slot_index": 5
+        },
+        {
+          "name": "credits_left",
+          "type": "FLOAT",
+          "links": null,
+          "slot_index": 6
+        },
+        {
+          "name": "result_json",
+          "type": "STRING",
+          "links": null,
+          "slot_index": 7
         }
       ],
       "properties": {
-        "Node name for S&R": "CRUN_Next_image_inpaint_f03e302dba95"
+        "Node name for S&R": "CRUN_Next_Media_image_inpaint_f03e302dba95"
       },
       "widgets_values": [
         "prepare",
@@ -123,44 +92,28 @@
         "[]",
         "",
         "[]",
-        false
+        false,
+        0,
+        "",
+        0,
+        1200,
+        3.0
       ],
       "title": "CRUN • Crun Image Inpaint API"
     },
     {
       "id": 2,
-      "type": "Note",
-      "pos": [
-        50,
-        120
-      ],
-      "size": [
-        460,
-        480
-      ],
-      "flags": {},
-      "order": 1,
-      "mode": 0,
-      "properties": {},
-      "widgets_values": [
-        "CRUN NEXT — SAFE START\n\nThis workflow defaults to PREPARE: no API request, upload or charge.\nEnter your API key only through Settings > CRUN Next, never in a workflow.\nConnect Load Image to native IMAGE references, or use Advanced URL fallbacks. Arrays/objects use JSON.\nPREPARE stays local. ESTIMATE uploads connected references and requests a price. GENERATE uploads references and submits a paid task.\nThe optional credit cap is under Advanced: 0 disables it; a positive cap is respected. Review the visible quote receipt.\nDo not share private media links when publishing this workflow.\n\nOption: Crun Image Inpaint API\nModel: image-inpaint\nDocumentation: https://docs.crun.ai/ai-tools/image-inpaint\n"
-      ],
-      "color": "#263341",
-      "bgcolor": "#17232d"
-    },
-    {
-      "id": 3,
       "type": "LoadImage",
       "pos": [
-        50,
-        650
+        30,
+        130
       ],
       "size": [
-        390,
-        300
+        340,
+        280
       ],
       "flags": {},
-      "order": 2,
+      "order": 0,
       "mode": 0,
       "inputs": [],
       "outputs": [
@@ -187,15 +140,169 @@
         "image"
       ],
       "title": "Choose image"
+    },
+    {
+      "id": 3,
+      "type": "LoadImage",
+      "pos": [
+        30,
+        480
+      ],
+      "size": [
+        340,
+        280
+      ],
+      "flags": {},
+      "order": 0,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "IMAGE",
+          "type": "IMAGE",
+          "links": [
+            2
+          ],
+          "slot_index": 0
+        },
+        {
+          "name": "MASK",
+          "type": "MASK",
+          "links": null,
+          "slot_index": 1
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "LoadImage"
+      },
+      "widgets_values": [
+        "",
+        "image"
+      ],
+      "title": "Choose mask"
+    },
+    {
+      "id": 4,
+      "type": "ImageToMask",
+      "pos": [
+        40,
+        770
+      ],
+      "size": [
+        310,
+        90
+      ],
+      "flags": {},
+      "order": 0,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "image",
+          "type": "IMAGE",
+          "link": 2
+        }
+      ],
+      "outputs": [
+        {
+          "name": "MASK",
+          "type": "MASK",
+          "links": [
+            3
+          ],
+          "slot_index": 0
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "ImageToMask"
+      },
+      "widgets_values": [
+        "red"
+      ],
+      "title": "Black/white edit mask"
+    },
+    {
+      "id": 5,
+      "type": "PreviewImage",
+      "pos": [
+        1000,
+        130
+      ],
+      "size": [
+        480,
+        380
+      ],
+      "flags": {},
+      "order": 2,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "images",
+          "type": "IMAGE",
+          "link": 4
+        }
+      ],
+      "outputs": [],
+      "properties": {
+        "Node name for S&R": "PreviewImage"
+      },
+      "widgets_values": []
+    },
+    {
+      "id": 6,
+      "type": "Note",
+      "pos": [
+        30,
+        60
+      ],
+      "size": [
+        340,
+        620
+      ],
+      "flags": {
+        "collapsed": true
+      },
+      "order": 3,
+      "mode": 0,
+      "properties": {},
+      "widgets_values": [
+        "CRUN NEXT — NATIVE MEDIA WORKFLOW\n\nSTART: Action=prepare, optional cap=0, Take=0. No upload, provider request or generation occurs in Prepare.\nChoose local media in the connected Load nodes. Native inputs keep their documented roles; URL/JSON fallbacks remain Advanced.\nEstimate uploads references and displays the current quote. Generate submits once, waits and returns native media directly to Preview/Save.\nThe same settings and Take resume/reuse their existing task. Increase Take only to intentionally request a new paid generation.\nAfter a timeout, keep the task ID and resume it; do not create a replacement automatically.\nThe optional positive cap stays under Advanced; 0 disables it. Actual credits and remaining balance are separate from estimates.\nEnter your API key only in Settings > CRUN Next, never in this graph.\n\nOption: Crun Image Inpaint API\nModel: image-inpaint\nDocumentation: https://docs.crun.ai/ai-tools/image-inpaint\n\nINPAINT MASK: choose a black/white mask with the same dimensions as the source image. ImageToMask uses its red channel; white marks the edit region. The optional boxs JSON is an alternative to this painted-mask workflow.\n"
+      ],
+      "title": "Workflow guide — expand for instructions",
+      "color": "#263341",
+      "bgcolor": "#17232d"
     }
   ],
   "links": [
     [
       1,
-      3,
+      2,
       0,
       1,
-      7,
+      0,
+      "IMAGE"
+    ],
+    [
+      2,
+      3,
+      0,
+      4,
+      0,
+      "IMAGE"
+    ],
+    [
+      3,
+      4,
+      0,
+      1,
+      1,
+      "MASK"
+    ],
+    [
+      4,
+      1,
+      0,
+      5,
+      0,
       "IMAGE"
     ]
   ],
@@ -205,14 +312,23 @@
     "ds": {
       "scale": 0.8,
       "offset": [
-        30,
-        30
+        20,
+        20
       ]
     },
     "crun_next": {
       "entry_id": "crun-142774e3171d9acea81b",
       "model": "image-inpaint",
+      "output_kind": "image",
       "default_mode": "prepare",
+      "native_inputs_connected": [
+        "image",
+        "mask"
+      ],
+      "preview_node": "PreviewImage",
+      "result_node": null,
+      "node_type": "CRUN_Next_Media_image_inpaint_f03e302dba95",
+      "workflow_type": "creative_native_media",
       "generation_tested": false
     }
   },

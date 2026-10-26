@@ -1,129 +1,125 @@
-# 0.3.2 simple actions and credit-receipt alpha validation
+# 0.4.0 native-media creative workflow validation
 
-Checked on Windows, 25 October 2026.
+Verified **26 October 2026**, Windows. This document separates implementation,
+automated/local Comfy executor evidence, retained 0.3 history and the one approved
+live provider test. Interactive canvas verification remains Not Checked.
 
-## 0.3.2 reported-error regression and approved action flow
+## Current 0.4 code under verification
 
-- Prepare remains local: connected media is inspected/encoded without uploading,
-  requesting a quote, querying a balance or creating a task.
-- Estimate uploads required connected references and requests a quote. Generate
-  uploads required references, quotes, checks any positive optional cap and the
-  available balance, then submits one task. The selected action replaces the
-  extra upload/paid checkboxes; their serialized arguments remain accepted for
-  compatibility but no longer gate these actions.
-- The optional estimated-credit cap lives under Advanced. Zero disables that cap;
-  existing positive caps, including 100 credits, are preserved across model
-  changes. Negative, nonnumeric and nonfinite caps remain invalid.
-- A synthetic quote above a saved 100-credit cap returns the exact quote and cap
-  with status budget_blocked and an empty task ID. It does not query the balance,
-  create a task or write a submission marker. This fixture is not the reported
-  user's actual quote or evidence of a live CRUN price.
-- Insufficient balance also returns a readable receipt with an empty task ID.
-  These outcomes no longer raise a budget/balance traceback. Empty-ID result
-  retrieval safely waits instead of attempting a download or regeneration.
-- The node receipt displays returned quote metadata, optional cap, model/time
-  and balance at check when available. It labels the quote as an estimate rather
-  than final credits spent; it makes no network requests or workflow changes.
-- Explicit Comfy input-validation signatures retain normal model enum and
-  IMAGE/MASK link-type checks. Legacy checkbox values do not override the action.
+- New creative generator contracts return VIDEO directly, IMAGE plus transparency
+  MASK, or AUDIO; URL, task ID, estimated/actual cost, remaining balance and
+  diagnostic JSON are separate outputs.
+- Creative nodes use `OUTPUT_NODE=False` and connect to the appropriate native
+  media sink. Typed recipes include source roles and preview/save; unknown-output,
+  3D and unsupported LLM operations remain Advanced API examples.
+- Legacy generated and family IDs/output positions remain stable under Advanced
+  API Tasks / Legacy Families. They retain their old API-task execution behavior.
+- Native simple VIDEO/AUDIO URL fields have named/ordered reference sockets.
+  PNG/MP4/WAV materialization stays local in Prepare; Estimate/Generate upload as
+  required. URL/native conflicts, numbered-reference gaps and known model
+  conditions fail before upload.
+- Dedicated conditional guards supplement machine schemas for Kling Omni,
+  motion-control and Wan 2.7 reference requirements. They do not cover every
+  documented model/prose restriction.
+- Prepare/Estimate return blocked media until there is an actual result.
+  Preparation problems have readable validation feedback; quotes are not final
+  charges and unknown balance/cost are not zero.
+- Same prepared request/Take reuses its recorded task across restart. New creative
+  mappings use a credential-keyed HMAC and retain accepted IDs without persisting
+  prompts/reference URLs. Cross-process submission coordination and no automatic
+  job-mapping eviction protect the local reuse path.
+- Explicit Advanced resume ID retrieves the existing task without old references,
+  quote or submission in Estimate/Generate. Prepare remains local. Unknown
+  submission outcomes/timeouts never trigger replacement generation.
+- Completed media uses bounded download/decoding and a content-verified local
+  index. The asset index is bounded separately from the non-evicting creative
+  submission records. Cached local media can avoid a download; creative completion
+  may still refresh account balance read-only.
 
-## Verified offline
+## Current local evidence
 
-- 187 Python tests completed in the Comfy Python environment: 186 passed and one
-  Unix-only permission test skipped. Torch-dependent checks skip when Torch is
-  absent in CI.
-- 34 JavaScript tests passed: 11 main frontend checks, 14 model-control checks and
-  nine credit-receipt checks. They cover family/profile switching, enum/range
-  updates, integer rendering, hidden legacy checkboxes, positive-cap retention,
-  preserved connections, receipt parsing/rendering and callback cleanup.
-- 62 task-focused family nodes cover 162 image/video operations. Each selected
-  model dispatches its exact documented ID and validates its own parameter schema.
-- All 62 Studio recipes connect task IDs to native result retrieval and Preview
-  Image / Save Video. The 1,337 per-option recipes retain native IMAGE source
-  connections where roles are known. All 1,399 start in prepare mode with optional
-  cap zero. Legacy false checkbox slots remain for workflow compatibility.
-- Native IMAGE/MASK encoding covers ordered batches, finite normalized values,
-  PNG pixels, alpha/grayscale, image/count/byte limits and matching mask dimensions.
-- First/last-frame pairs, ordered Effect images, reference-image batches,
-  inpainting masks, face references and background images have appropriate sockets.
-  Array alternatives in Flux and Wan schemas are handled explicitly.
-- Reference uploads follow the selected Estimate/Generate action. A separate
-  credential-free PUT transports bytes without redirects or retries. Temporary
-  receipts are cached in memory by credential/content for 30 minutes.
-- Preparation placeholders cannot be submitted or quoted as real URLs. Invalid
-  parameters and ambiguous native/URL sources stop before an upload. An upload
-  can precede a quote/cap or balance rejection; that rejection means no generation
-  was submitted, not that no provider request occurred.
-- A valid Generate action with no optional cap can submit after quote and balance
-  checks. Submission remains single-attempt with recoverable task IDs and local
-  journaling; ambiguous failures instruct recovery without automatic resubmission.
-- Retrieval tests poll only the existing task ID, preserve it on failure/timeout,
-  bound downloads, omit credentials and save media under output/CRUNResults.
-- Real local PNG-to-Torch decoding and a synthetic MP4 loaded through Comfy's
-  native VideoFromFile implementation (64 x 48) verified media adapters locally.
+- Native reference suites passed locally during implementation: 11 media, 13
+  native-node, 26 client, 15 execution and 10 generated-definition tests. These are
+  component checks, not the final release-wide count.
+- Transport tests mock provider calls and verify PNG/MP4/WAV MIME/extension,
+  presigned-ticket GET and credential-free PUT, no redirects/retries, content/key
+  cache scope, and no paid submission during estimation.
+- Real local Comfy VideoFromFile materialization passed using an independently
+  created synthetic AVC MP4: 64 x 48, 12 frames, 24 fps, 0.5 seconds. Native AUDIO
+  preparation passed for a one-second 16 kHz mono PCM16 WAV. No provider request
+  occurred. Evidence was saved outside the package in
+  `outputs/crun-v04-native-qa/native-adapter-proof.json`.
+- Model guard tests exercised documented conditional reference errors using
+  synthetic values and no provider calls. Final combined counts follow below.
 
-## Actual 0.3.2 credit-receipt interface check
+## Final 0.4 release evidence
 
-- Opened an isolated CPU-only ComfyUI 0.42.5 / frontend 1.55.18 instance and
-  executed a QA-only receipt emitter from the real Run button. That fixture
-  imports no provider client and cannot upload, quote or create a CRUN task.
-- Confirmed the node displays its synthetic 250-credit quote, retained 100-credit
-  optional cap, model/time, block explanation and Advanced instructions. The
-  model and node title explicitly label the values as synthetic test data.
-- Verified the extra upload/paid checkboxes stay hidden and Advanced exposes the
-  saved optional cap. Increased the receipt height after the visual check so the
-  explanation remains readable. No existing user workflow was changed.
+| Check | Status | Evidence |
+| --- | --- | --- |
+| Full Python suite | Pass | 250 checks: 249 passed, one Unix-only permission skip on Windows; Comfy Python 3.13 |
+| Full JavaScript suite | Pass | 41 frontend checks: profiles, labels, receipts, Advanced/Take and preserved caps |
+| All generated recipes | Pass | 1,399 recipes: 1,314 typed native chains, 85 clearly marked Advanced examples; links and widget serialization verified |
+| Legacy graph contracts | Pass | All 1,399 old generated/family definitions retain widget order; original IDs and output positions remain |
+| Native generator contracts | Pass | Native media first; IMAGE adds MASK; ordinary creative nodes are not independent output targets |
+| Real Comfy Prepare | Pass | Missing Seedance image produced readable validation; Save Video blocked; task journals unchanged |
+| Live provider image | Pass, one model | Approved Nano Banana Pro 1K square prompt-only task: actual 8 credits, IMAGE[1,1024,1024,3], MASK[1,1024,1024] |
+| Real Comfy Save Image | Pass | Existing approved task resumed through native creative node to SaveImage; output descriptor and saved PNG verified |
+| Completed local reuse | Pass | Reopened the actual approved image with provider polling/download forbidden; no provider request |
+| Native VIDEO to SaveVideo | Pass, synthetic | Actual Comfy executor; saved/decoded AVC MP4, 64x48, 12 frames, 24fps, 0.5s; no provider access |
+| Native AUDIO to PreviewAudio | Pass, synthetic | Actual Comfy executor; saved/decoded FLAC, 16kHz, 8,000 samples; no provider access |
+| Recovery/concurrency | Pass, offline | Same Take, unknown submission, failed retrieval, separate credentials, cross-process lock, non-evicting mappings and explicit resume checks |
+| RGBA/MASK/AUDIO adapters | Pass, local | Actual alpha inversion and PCM decoding/size/sample checks |
+| Interactive browser/canvas | Not checked | Windows Computer Use stopped because it could not reliably determine the active browser URL; no further UI input was issued |
+| Runtime ZIP/install integrity | Release gate | Explicit allowlist, CRC/SHA256, saved-key scan and installed-file/KIE/credential checks run before publication |
+| GitHub CI | Release gate | Windows/Ubuntu workflow results on the release commit are authoritative; prior-release success is not used |
+| Live native uploads, video/audio generation, every model | Not checked | No authorization to expand the one approved image task |
 
-## Retained family-interface and local execution checks
+The real image test is provider execution evidence for that model/settings only.
+Synthetic video/audio prove native media integration and saving, not upstream
+video/audio model acceptance. Financial receipts are private; the public package
+contains no account balance, key, task ID, user-media reference or private journal.
 
-The following checks were performed during the preceding 0.3 development. They
-verify the family interface and local Prepare path; they are not live-provider
-or final 0.3.2 credit-widget execution evidence.
+## Retained history — 0.3 and 0.3.2 only
 
-- Isolated CPU-only ComfyUI 0.42.5 / frontend 1.55.18 starts with CRUN Next.
-- Imported Studio-Seedance-Image-to-Video through Comfy's template browser.
-- Confirmed Load Image -> first_frame, the eight-option Seedance dropdown,
-  optional last_frame, model-specific settings, Get Video Result and Save Video.
-- Switched Seedance 2.5 to 2.0 in the real canvas: connections remained intact,
-  supported controls updated and execution reset to prepare. Advanced fields
-  stay secondary. Integer durations render without decimals.
-- Selected a locally created synthetic PNG and ran the full graph from Comfy's
-  Run button. It completed successfully with one native image, zero validation
-  errors, an empty task ID and no provider activity. Empty-ID retrieval safely
-  blocked preview/save and explained that nothing had been submitted.
-- Saved QA baselines before opening templates. No existing user workflow was
-  discarded. Screenshots show the isolated test fixture, not a paid generation.
+The prior release completed 187 Python checks (186 passes, one Windows skip) and
+34 JavaScript tests, plus Windows/Ubuntu CI. Its isolated Comfy 0.42.5 / frontend
+1.55.18 checks covered local Prepare execution, family model switching, native
+IMAGE links and a synthetic credit-receipt emitter. Those are historical checks;
+they do not validate the new 0.4 combined creative path or a live provider round trip.
 
-## Retained discovery and credentials
+The 0.3 architecture returned JSON/task ID/credits on generators; only its 62
+Studio recipes supplied separate retrieval/sink chains. The 1,337 per-option
+recipes omitted that chain. The 26 October audit confirmed these limitations and
+other native-reference/conditional-validation gaps; passing old tests did not
+establish creative workflow parity. The 0.4 implementation specifically addresses
+them and requires the acceptance gate above.
 
-- The reviewed 0.2 catalog snapshot remains: 274 operations, 273 wire IDs,
-  21 providers, 55 live-listed LLM IDs in a 64-ID documentation/discovery union,
-  and 1,063 unique Effects covering all 1,088 source records.
-- That discovery used authenticated read-only balance/model/Effects endpoints.
-  Version 0.3 development did not repeat paid/provider-media operations.
-- Windows DPAPI persistence, safe historical connection/balance receipts and
-  loopback/same-origin/nonce boundaries remain covered by tests.
-- Per-option node IDs remain available. Image/video families are in the main
-  menu; individual model definitions are retained under Advanced/Catalog.
+## Retained discovery scope
 
-## Not verified / remaining limitations
+The 25 October snapshot has 274 operations, 273 wire IDs, 21 providers, 64 LLM
+IDs in the documentation/discovery union (55 live-listed in that check) and 1,063
+fixed Effects from 1,088 records. Discovery used read-only authenticated balance,
+LLM inventory and Effects endpoints. Five representative public CRUN schemas were
+rechecked during the 26 October audit and matched structurally. These counts and
+samples are not proof of present entitlement, all-catalog freshness or paid execution.
 
-- No real CRUN upload, cost estimate, paid generation or generated-media download
-  was performed by this development validation. Mocked transport success and local
-  media are not evidence of a provider round trip or access to every upstream model.
-- Native VIDEO/AUDIO input uploads, complex nested 3D/multi-face references,
-  LLM execution and cancellation remain pending. Advanced URL/JSON inputs remain
-  available where these native adapters do not exist.
-- Provider prose may impose additional image dimensions, file formats, reference
-  roles and conditional requirements. Machine schemas cannot prove every combination.
-- The optional cap checks an estimate, not a provider-enforced final spending cap.
-  Quote and balance receipts are historical responses, not continuously live data.
-- Upload URLs are temporary. Retry result retrieval by task ID after a timeout;
-  do not regenerate automatically. Original files should remain available locally.
-- Custom URL connections to a field renamed with an _urls suffix may need to be
-  reconnected; existing per-option node IDs and widget-value order are retained.
-- Other interactive operating systems, shared/public Comfy servers and Comfy
-  Registry publication have not been exercised for this release.
+## Known limitations
 
-Runtime packaging uses an explicit allowlist plus CRC/SHA256 checks. Credentials,
-user caches, task journals, signed upload links and Git history are excluded.
+- The one approved Nano Banana Pro image task completed. Live native-reference
+  uploads, video/audio generation, refund behavior and other model/account
+  availability remain Not Checked; one successful task does not validate a catalog.
+- Complex nested media, GIF-specific source adapters, 3D-native results, LLM
+  execution and provider cancellation remain incomplete. Unknown Vidu output types
+  stay Advanced instead of promising the wrong native output.
+- Some restrictions exist only in provider prose. Current schema and explicit
+  guards do not prove every model/reference combination.
+- Reuse is local and credential/request/Take scoped. Deleting/rolling back history,
+  changing credentials/configuration or losing assets must not be treated as a
+  provider-enforced exactly-once guarantee. Preserve accepted task IDs.
+- A positive optional cap checks the estimate, not the final provider bill.
+  Displayed receipts are historical; account balance is independently checked.
+- Other interactive operating systems, remote/multi-user servers and Comfy
+  Registry publication are not established by this release's local validation.
+
+Runtime packaging uses an explicit allowlist and CRC/SHA256 checks. Keys, private
+journals/indexes, user assets, signed URLs and Git history are excluded.

@@ -56,7 +56,7 @@ def _effect_entry(provider: str, card: dict, base_schema: dict | None = None) ->
     count = card.get("required_images")
     image_schema: dict[str, Any] = {
         "type": "array", "items": {"type": "string", "format": "uri"},
-        "description": "Ordered public HTTPS image references. Native Comfy media upload is not implemented yet.",
+        "description": "Ordered image references. Connect native IMAGE inputs, or use public HTTPS URL fallbacks under Advanced.",
         "default": [],
     }
     if isinstance(count, int) and not isinstance(count, bool) and count > 0:
@@ -203,24 +203,38 @@ def _default(field: dict, kind: str) -> Any:
     return [] if kind == "array" else {} if kind == "object" else ""
 
 
-def _widget(field: dict) -> tuple:
+def field_label(name: str) -> str:
+    labels = {"prompt": "Scene / edit instruction", "negative_prompt": "Avoid", "img_urls": "Image URLs (advanced)",
+              "image_urls": "Image URLs (advanced)", "video_urls": "Video URLs (advanced)", "video_url": "Source video URL (advanced)",
+              "reference_images": "Reference image URLs (advanced)", "reference_videos": "Reference video URLs (advanced)",
+              "reference_audios": "Reference audio URLs (advanced)", "audio_url": "Audio URL (advanced)",
+              "reference_audio": "Voice reference URL (advanced)", "reference_video_type": "Video reference role",
+              "reference_medias": "Structured reference media (advanced)", "character_orientation": "Follow orientation from",
+              "keep_original_sound": "Keep source sound", "audio": "Generate audio", "generate_audio": "Generate audio",
+              "aspect_ratio": "Aspect ratio", "duration": "Duration (seconds)", "resolution": "Resolution", "seed": "Seed",
+              "return_last_frame": "Return last frame", "task_type": "Reference task mode", "boxs": "Edit regions (advanced JSON)"}
+    return labels.get(name, name.replace("_", " ").strip().capitalize())
+
+
+def _widget(field: dict, name: str = "") -> tuple:
     kind = _field_type(field)
     value = _default(field, kind)
     tooltip = str(field.get("description") or "")[:1200]
+    label = field_label(name) if name else None
     enums = field.get("enum")
     if "const" in field:
         enums = [field["const"]]
     if isinstance(enums, list) and enums and all(isinstance(item, str) for item in enums):
         if value not in enums:
             value = enums[0]
-        return (list(enums), {"default": value, "tooltip": tooltip})
+        return (list(enums), {"default": value, "tooltip": tooltip, "label": label})
     if isinstance(enums, list) and enums and all(isinstance(item, (int, float)) and not isinstance(item, bool) for item in enums):
         choices = [str(item) for item in enums]
-        return (choices, {"default": str(value) if str(value) in choices else choices[0], "tooltip": tooltip})
+        return (choices, {"default": str(value) if str(value) in choices else choices[0], "tooltip": tooltip, "label": label})
     if kind == "boolean":
-        return ("BOOLEAN", {"default": bool(value), "tooltip": tooltip})
+        return ("BOOLEAN", {"default": bool(value), "tooltip": tooltip, "label": label})
     if kind in {"integer", "number"}:
-        options = {"default": value, "tooltip": tooltip}
+        options = {"default": value, "tooltip": tooltip, "label": label}
         for source, target in (("minimum", "min"), ("maximum", "max")):
             if isinstance(field.get(source), (int, float)) and not isinstance(field.get(source), bool):
                 options[target] = field[source]
@@ -228,8 +242,8 @@ def _widget(field: dict) -> tuple:
             options["step"] = 0.01
         return ("INT" if kind == "integer" else "FLOAT", options)
     if kind in {"object", "array"}:
-        return ("STRING", {"default": json.dumps(value, ensure_ascii=False), "multiline": True, "tooltip": (tooltip + " JSON input; no automatic media upload.").strip()})
-    return ("STRING", {"default": str(value) if value is not None else "", "multiline": True, "tooltip": tooltip})
+        return ("STRING", {"default": json.dumps(value, ensure_ascii=False), "multiline": True, "tooltip": (tooltip + " Advanced JSON fallback; native reference sockets are preferred where provided.").strip(), "label": label})
+    return ("STRING", {"default": str(value) if value is not None else "", "multiline": name in {"prompt", "negative_prompt", "text", "lyrics", "script", "instructions"}, "tooltip": tooltip, "label": label})
 
 
 def field_definitions(entry: dict) -> list[tuple[str, str, dict, bool]]:
@@ -265,7 +279,11 @@ def _parse_field(value: Any, field: dict, name: str) -> Any:
 
 
 def image_bindings(entry: dict) -> list[dict]:
-    """Only known image fields become sockets; video/audio URLs stay distinct."""
+    """Stable image sockets followed by documented native VIDEO/AUDIO roles.
+
+    The historical name remains callable. New media sockets append after all
+    image sockets so existing image slot order and serialized widgets remain.
+    """
     properties = _input_schema(entry).get("properties", {})
     bindings = []
     model = str(entry.get("model") or "").lower()
@@ -293,6 +311,31 @@ def image_bindings(entry: dict) -> list[dict]:
         elif wire in {"image_url", "mask_url", "bg_image_url", "new_face"} and kind == "string":
             socket = {"image_url": "image", "mask_url": "mask", "bg_image_url": "background_image", "new_face": "face_image"}[wire]
             bindings.append({"socket": socket, "wire_name": wire, "kind": "mask" if wire == "mask_url" else "image", "many": False})
+    for wire, field in properties.items():
+        kind = _field_type(field)
+        media_kind = "video" if wire in {"video_url", "video_urls", "reference_videos"} else "audio" if wire in {"audio_url", "audio_urls", "reference_audios", "reference_audio"} else None
+        if not media_kind:
+            continue
+        # GIF face-swap requires an actual GIF URL, not a transcoded MP4.
+        if media_kind == "video" and "gif" in model:
+            continue
+        array = kind == "array" and _field_type(field.get("items", {})) == "string"
+        if kind != "string" and not array:
+            continue
+        maximum = field.get("maxItems") if array else 1
+        count = min(maximum, 16) if isinstance(maximum, int) and not isinstance(maximum, bool) and maximum > 0 else 1
+        if media_kind == "video":
+            role = "motion_video" if "motion-control" in model or "animate-move" in model else "source_video" if wire == "video_url" or "animate-replace" in model or "aleph" in model else "reference_video"
+        else:
+            role = "reference_audio" if wire != "reference_audio" else "voice_reference"
+        for index in range(count):
+            socket = role + (f"_{index + 1}" if count > 1 else "")
+            bindings.append({"socket": socket, "wire_name": wire, "kind": media_kind, "many": False,
+                             "media_type": media_kind.upper(), "index": index, "slots": count,
+                             "label": field_label(role) + (f" {index + 1}" if count > 1 else "")})
+    for binding in bindings:
+        binding.setdefault("media_type", "MASK" if binding["kind"] == "mask" else "IMAGE")
+        binding.setdefault("label", field_label(binding["socket"]))
     # Never create two sockets with an ambiguous mapping.
     names = [binding["socket"] for binding in bindings]
     if len(names) != len(set(names)):
@@ -326,13 +369,13 @@ def make_node(entry: dict) -> type:
         for widget_name, wire_name, schema, is_required in fields:
             if "const" in schema:
                 continue  # Fixed template/model metadata is not an editable widget.
-            (required if is_required else optional)[widget_name] = _widget(schema)
+            (required if is_required else optional)[widget_name] = _widget(schema, wire_name)
         if not fields:
             optional["advanced_input_json"] = ("STRING", {"default": "{}", "multiline": True, "tooltip": "No parameter schema was available. Consult documentation; prepare-only unless supported."})
-        if bindings:
+        if any(binding["kind"] in {"image", "mask"} for binding in bindings):
             optional[CONTROL_UPLOAD] = ("BOOLEAN", {"default": False, "tooltip": "Legacy compatibility field. Estimate/Generate upload connected references as required; Prepare stays offline. This checkbox is hidden."})
         for binding in bindings:
-            optional[binding["socket"]] = ("MASK" if binding["kind"] == "mask" else "IMAGE", {"tooltip": f"Native {binding['kind']} reference for {binding['wire_name']}. Reference order is preserved. Use either native connections or the URL fallback for this field."})
+            optional[binding["socket"]] = (binding["media_type"], {"label": binding["label"], "crun_wire_name": binding["wire_name"], "tooltip": f"Native {binding['kind']} reference for {binding['wire_name']}. Reference order is preserved. Use either native connections or the URL fallback for this field."})
         result = {"required": required}
         if optional:
             result["optional"] = optional

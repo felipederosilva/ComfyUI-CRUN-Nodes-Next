@@ -154,6 +154,7 @@ def _profile(entry: dict, definition: dict) -> dict:
     binding_by_socket = {binding["socket"]: binding for binding in bindings}
     input_schema = generated._input_schema(entry)
     url_widgets = {binding["wire_name"] for binding in bindings}
+    legacy_url_widgets = {binding["wire_name"] for binding in bindings if binding["kind"] in {"image", "mask"}}
     fields, inputs = {}, {}
     for section, specs in definition.items():
         for name, spec in specs.items():
@@ -163,7 +164,10 @@ def _profile(entry: dict, definition: dict) -> dict:
                 binding = binding_by_socket.get(name, {})
                 wire = binding.get("wire_name", name)
                 field = input_schema.get("properties", {}).get(wire, {})
-                inputs[name] = {"type": kind, "required": wire in input_schema.get("required", []), "wire_name": wire, "reference_min": field.get("minItems"), "reference_max": field.get("maxItems"), "tooltip": options.get("tooltip", "")}
+                slot_required = wire in input_schema.get("required", [])
+                if binding.get("index") is not None:
+                    slot_required = slot_required and binding["index"] < field.get("minItems", 1)
+                inputs[name] = {"type": kind, "required": slot_required, "label": binding.get("label", options.get("label", name.replace("_", " ").title())), "wire_name": wire, "reference_min": field.get("minItems"), "reference_max": field.get("maxItems"), "tooltip": options.get("tooltip", "")}
                 continue
             if name in _CONTROLS:
                 continue
@@ -173,17 +177,23 @@ def _profile(entry: dict, definition: dict) -> dict:
             if not required and schema.get("default", "missing") is None and isinstance(kind, list):
                 options["values"] = [PROVIDER_DEFAULT] + list(options["values"])
                 options["default"] = PROVIDER_DEFAULT
-            fields[name] = {"visible": True, "required": required, "type": "COMBO" if isinstance(kind, list) else kind, "options": options, "wire_name": wire, "advanced": wire in url_widgets or wire in _TECHNICAL, "schema_type": generated._field_type(schema)}
+            fields[name] = {"visible": True, "required": required, "label": options.get("label", generated.field_label(wire)), "type": "COMBO" if isinstance(kind, list) else kind, "options": options, "wire_name": wire, "advanced": wire in url_widgets or wire in _TECHNICAL, "legacy_advanced": wire in legacy_url_widgets or wire in _TECHNICAL, "schema_type": generated._field_type(schema)}
     counts = []
     for binding in bindings:
+        if binding.get("kind") in {"video", "audio"}:
+            continue
         field = generated._input_schema(entry).get("properties", {}).get(binding["wire_name"], {})
         maximum = field.get("maxItems")
         minimum = field.get("minItems")
         if maximum is not None:
-            counts.append(f"{binding['socket']}: up to {maximum} image(s)" if binding.get("many") else f"{binding['socket']}: one image")
+            counts.append(f"{binding.get('label', binding['socket'])}: up to {maximum} image(s)" if binding.get("many") else f"{binding.get('label', binding['socket'])}: one image")
         elif minimum is not None:
             counts.append(f"{binding['socket']}: check documented reference limits")
-    capability = "; ".join(dict.fromkeys(counts)) or "No native image reference is used by this model."
+    for binding in bindings:
+        if binding.get("kind") in {"video", "audio"}:
+            counts.append(binding.get("label", binding["socket"].replace("_", " ").title()))
+    has_raw_references = any(any(word in name for word in ("reference", "image", "img_", "video", "audio")) for name in input_schema.get("properties", {}))
+    capability = "; ".join(dict.fromkeys(counts)) or ("References use the advanced structured/URL fields for this model; a native adapter for those roles is not available." if has_raw_references else "This model uses no native reference input.")
     return {"model_id": entry["model"], "title": entry.get("title", entry["model"]), "documentation_url": entry.get("documentation_url"), "fields": fields, "inputs": inputs, "description": generated._input_schema(entry).get("description", ""), "capability_text": capability, "generation_supported": entry.get("generation_supported", False)}
 
 
@@ -250,7 +260,9 @@ def make_family_node(family: dict) -> type:
                     spec_sets[name].append(spec)
     union = {name: _union_spec(name, specs, profiles) for name, specs in spec_sets.items()}
     priority = {name: index for index, name in enumerate(_ORDER)}
-    ordered = sorted(union, key=lambda name: (any(profile["fields"].get(name, {}).get("advanced") for profile in profiles.values()), priority.get(name, len(priority)), name))
+    # Keep serialized v0.3 widget positions even when a newly native VIDEO/AUDIO
+    # URL fallback moves behind Advanced visually. Graph values are positional.
+    ordered = sorted(union, key=lambda name: (any(profile["fields"].get(name, {}).get("legacy_advanced") for profile in profiles.values()), priority.get(name, len(priority)), name))
     initial_defaults = {name: deepcopy(spec[1].get("default")) for name, spec in union.items() if len(spec) > 1}
 
     @classmethod

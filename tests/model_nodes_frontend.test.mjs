@@ -88,6 +88,40 @@ test("created node exposes only selected model controls, keeping native inputs",
     assert.ok(node.size[0] >= 440);
 });
 
+test("creative Take stays visible while wrapper recovery and polling fields follow Advanced", () => {
+    const data = definition();
+    data.input.optional.take = ["INT", { default: 1, label: "Take" }];
+    for (const [name, label] of [["resume_task_id", "Resume task ID"], ["result_index", "Result index"], ["timeout_seconds", "Wait timeout"], ["poll_interval", "Status interval"]]) {
+        data.input.optional[name] = [name === "resume_task_id" ? "STRING" : "INT", { default: name === "resume_task_id" ? "" : 1, advanced: true, label }];
+    }
+    const node = makeNode();
+    node.widgets.push(widget("take", 5), widget("resume_task_id", "saved_task", "text"), widget("result_index", 0), widget("timeout_seconds", 1200), widget("poll_interval", 3));
+    ui.attachFamilyControls(node, data);
+    assert.equal(byName(node, "take").hidden, undefined);
+    assert.equal(byName(node, "take").label, "Take");
+    assert.match(byName(node, "take").tooltip, /resume or reuse/);
+    for (const name of ["resume_task_id", "result_index", "timeout_seconds", "poll_interval"]) assert.equal(byName(node, name).hidden, true);
+    ui.toggleAdvancedControls(node);
+    assert.equal(byName(node, "resume_task_id").hidden, false);
+    assert.equal(byName(node, "resume_task_id").label, "Resume task ID");
+    change(node, "model", "Seedance 2.0");
+    assert.equal(byName(node, "take").value, 5);
+    assert.equal(byName(node, "resume_task_id").value, "saved_task");
+    ui.toggleAdvancedControls(node);
+    assert.equal(byName(node, "resume_task_id").hidden, true);
+    assert.equal(byName(node, "resume_task_id").value, "saved_task");
+});
+
+test("schema human labels apply within model profiles without changing wire names", () => {
+    const data = definition();
+    data.input.required.model[1].crun_profiles["Seedance 1.5 Pro"].fields.prompt.options.label = "Scene prompt";
+    const node = makeNode();
+    ui.attachFamilyControls(node, data);
+    assert.equal(byName(node, "prompt").label, "Scene prompt *");
+    assert.equal(byName(node, "prompt").name, "prompt");
+    assert.equal(node.inputs[0].link, 1);
+});
+
 test("model changes update choices and reset to prepare while retaining an existing positive optional cap", () => {
     const node = makeNode();
     ui.attachFamilyControls(node, definition());
@@ -172,13 +206,14 @@ test("legacy model nodes get the same simple actions and advanced optional cap w
         crun_mode: [["prepare", "estimate", "generate"], { default: "prepare" }],
         crun_allow_upload: ["BOOLEAN", { default: false }], crun_allow_paid_generation: ["BOOLEAN", { default: false }],
         crun_max_credits: ["FLOAT", { default: 0 }], byteplus_fallback: ["BOOLEAN", { default: false }],
-    }, optional: { first_frame: ["IMAGE", { crun_wire_name: "image_url" }] } } };
+    }, optional: { first_frame: ["IMAGE", { crun_wire_name: "image_url", label: "First frame" }] } } };
     ui.attachLegacyControls(node, data);
     assert.equal(byName(node, "image_url").hidden, true);
     assert.equal(technical.hidden, true);
     assert.equal(byName(node, "crun_max_credits").hidden, true);
     assert.equal(byName(node, "crun_max_credits").value, 100);
     assert.equal(node.inputs[0].link, 1);
+    assert.equal(node.inputs[0].label, "First frame");
     change(node, "crun_mode", "generate");
     assert.equal(byName(node, "crun_allow_upload").hidden, true);
     assert.equal(byName(node, "crun_allow_paid_generation").hidden, true);

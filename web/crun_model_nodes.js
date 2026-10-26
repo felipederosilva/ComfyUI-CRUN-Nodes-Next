@@ -118,7 +118,7 @@ function profileWidget(widget, field, base, visible) {
         widget.options.precision = integer ? 0 : field.options?.precision ?? (base.schemaType === "FLOAT" ? base.options?.precision : undefined) ?? Math.max(0, -Math.floor(Math.log10(increment)));
         widget.options.round = integer ? 1 : field.options?.round ?? Math.pow(10, -widget.options.precision);
     }
-    widget.label = `${field.label || field.wire_name || widget.name}${field.required ? " *" : ""}`;
+    widget.label = `${field.label || field.options?.label || base.options?.label || field.wire_name || widget.name}${field.required ? " *" : ""}`;
     widget.tooltip = field.options?.tooltip || base.options?.tooltip || "";
 }
 
@@ -217,6 +217,11 @@ function simpleExecutionControls(node, state) {
     }
     const mode = node.widgets?.find(item => item.name === "crun_mode");
     if (mode) mode.label = "Action";
+    const take = node.widgets?.find(item => item.name === "take");
+    if (take) {
+        take.label = "Take";
+        take.tooltip = "Keep the same take to resume or reuse its result. Change the take only when you want another generation.";
+    }
 }
 
 function refreshNodeControls(node, options = {}) {
@@ -268,6 +273,13 @@ export function applyFamilyProfile(node, { reason = "refresh" } = {}) {
                 }
             }
         }
+        // Creative completion/recovery controls belong to the wrapper rather
+        // than a model profile. Respect their declared Advanced flag too.
+        for (const widget of node.widgets || []) {
+            if (!state.wrapperAdvanced.has(widget.name) || !state.base.has(widget)) continue;
+            visibleWidget(widget, state.showAdvanced, state.base.get(widget));
+            linkedWidgetVisibility(widget, state.showAdvanced, state);
+        }
         simpleExecutionControls(node, state);
         const inputs = profile.inputs || {};
         for (const input of node.inputs || []) {
@@ -293,9 +305,13 @@ export function attachFamilyControls(node, nodeData) {
     const definitions = inputDefinitions(nodeData);
     const managed = new Set(Object.values(profiles).flatMap(profile => Object.keys(profile.fields || {})));
     const nativeInputs = new Set(Object.values(profiles).flatMap(profile => Object.keys(profile.inputs || {})));
-    const state = { kind: "family", profiles, managed, nativeInputs, base: new Map(), inputLabels: new Map(), linkedValues: new Map(), model: null, help: null, applying: false, showAdvanced: false, advancedButton: null };
+    const wrapperAdvanced = new Set(Object.entries(definitions).filter(([name, spec]) => !managed.has(name) && spec?.[1]?.advanced).map(([name]) => name));
+    const state = { kind: "family", profiles, managed, nativeInputs, wrapperAdvanced, base: new Map(), inputLabels: new Map(), linkedValues: new Map(), model: null, help: null, applying: false, showAdvanced: false, advancedButton: null };
     states.set(node, state);
-    for (const widget of node.widgets || []) state.base.set(widget, rememberWidget(widget, definitions[widget.name]));
+    for (const widget of node.widgets || []) {
+        state.base.set(widget, rememberWidget(widget, definitions[widget.name]));
+        if (definitions[widget.name]?.[1]?.label) widget.label = definitions[widget.name][1].label;
+    }
     for (const input of node.inputs || []) state.inputLabels.set(input.name, input.label || input.name);
     for (const name of ["model", "crun_mode"]) {
         const widget = node.widgets?.find(item => item.name === name);
@@ -318,6 +334,9 @@ export function attachFamilyControls(node, nodeData) {
 export function applyLegacyControls(node) {
     const state = states.get(node);
     if (!state || state.kind !== "legacy") return null;
+    for (const input of node.inputs || []) {
+        if (state.nativeLabels.has(input.name)) input.label = state.nativeLabels.get(input.name);
+    }
     for (const widget of node.widgets || []) {
         if (!state.advancedFields.has(widget.name) || !state.base.has(widget)) continue;
         visibleWidget(widget, state.showAdvanced, state.base.get(widget));
@@ -337,7 +356,7 @@ export function attachLegacyControls(node, nodeData) {
     for (const spec of Object.values(definitions)) {
         if (!["IMAGE", "MASK", "VIDEO", "AUDIO"].includes(spec?.[0])) continue;
         const options = spec[1] || {};
-        const wire = options.crun_wire_name || /^Native (?:image|mask) reference for ([A-Za-z0-9_]+)\./.exec(options.tooltip || "")?.[1];
+        const wire = options.crun_wire_name || /^Native (?:image|mask|video|audio) reference for ([A-Za-z0-9_]+)\./.exec(options.tooltip || "")?.[1];
         if (wire) mediaWires.add(wire);
     }
     const advancedFields = new Set();
@@ -345,9 +364,13 @@ export function attachLegacyControls(node, nodeData) {
         if (["IMAGE", "MASK", "VIDEO", "AUDIO"].includes(spec?.[0]) || CONTROLS.has(name)) continue;
         if (spec?.[1]?.advanced || TECHNICAL_FIELDS.has(name) || mediaWires.has(name) || mediaWires.has(name.replace(/_urls?$/, ""))) advancedFields.add(name);
     }
-    const state = { kind: "legacy", advancedFields, base: new Map(), linkedValues: new Map(), showAdvanced: false, help: null, advancedButton: null };
+    const nativeLabels = new Map(Object.entries(definitions).filter(([, spec]) => ["IMAGE", "MASK", "VIDEO", "AUDIO"].includes(spec?.[0]) && spec?.[1]?.label).map(([name, spec]) => [name, spec[1].label]));
+    const state = { kind: "legacy", advancedFields, nativeLabels, base: new Map(), linkedValues: new Map(), showAdvanced: false, help: null, advancedButton: null };
     states.set(node, state);
-    for (const widget of node.widgets || []) state.base.set(widget, rememberWidget(widget, definitions[widget.name]));
+    for (const widget of node.widgets || []) {
+        state.base.set(widget, rememberWidget(widget, definitions[widget.name]));
+        if (definitions[widget.name]?.[1]?.label) widget.label = definitions[widget.name][1].label;
+    }
     const mode = node.widgets?.find(item => item.name === "crun_mode");
     if (mode) {
         const original = mode.callback;

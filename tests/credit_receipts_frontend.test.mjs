@@ -144,3 +144,55 @@ test("lifecycle wrappers preserve other extension callbacks and clean up their o
     assert.equal(node.removed, true);
     assert.equal(state.element.removed, true);
 });
+
+test("completed receipts separate actual task cost, quote and timestamped remaining balance", () => {
+    const text = ui.formatCreditReceipt(ui.parseCreditReceipt(message({ status: "completed", task_id: "fixture_task", credits: 12, actual_credits: 9, credits_left: 41, balance_before: 50, balance_checked_at: 1700000010 })));
+    assert.match(text, /CRUN RESULT/);
+    assert.match(text, /Quote: 12 CRUN credits/);
+    assert.match(text, /Actual credits: 9 CRUN credits/);
+    assert.match(text, /Credits left: 41 CRUN credits/);
+    assert.match(text, /Balance checked:/);
+    assert.match(text, /Media ready/);
+    assert.doesNotMatch(text, /stopped this request|Task submitted/);
+    const unknown = ui.formatCreditReceipt(ui.parseCreditReceipt(message({ status: "completed", actual_credits: -1, credits_left: null })));
+    assert.match(unknown, /Actual credits: unavailable/);
+    assert.match(unknown, /Final task cost was not reported/);
+    assert.doesNotMatch(unknown, /Actual credits: 321/);
+});
+
+test("zero actual cost and balance remain real zeros while resumed means no replacement task", () => {
+    const text = ui.formatCreditReceipt(ui.parseCreditReceipt(message({ status: "resumed", actual_credits: 0, credits_left: 0 })));
+    assert.match(text, /Actual credits: 0 CRUN credits/);
+    assert.match(text, /Credits left: 0 CRUN credits/);
+    assert.match(text, /Existing result recovered/);
+    assert.match(text, /No replacement generation submitted/);
+    assert.doesNotMatch(text, /unavailable/);
+});
+
+test("Prepare shows safe local validation with specific missing-reference roles", () => {
+    const text = ui.formatCreditReceipt(ui.parseCreditReceipt(message({ mode: "prepare", status: "draft", errors: ["request.input.img_urls: required.", "reference_video_type: choose base_video or feature_video for the connected video."] })));
+    assert.match(text, /Inputs need attention/);
+    assert.match(text, /img urls: required\./);
+    assert.match(text, /reference video type: choose base_video/);
+    assert.doesNotMatch(text, /checks passed|321|100/);
+    const valid = ui.formatCreditReceipt(ui.parseCreditReceipt(message({ mode: "prepare", status: "draft", errors: [] })));
+    assert.match(valid, /Local input checks passed/);
+});
+
+test("untrusted errors are discarded rather than echoed as validation feedback", () => {
+    const receipt = ui.parseCreditReceipt(message({ mode: "prepare", errors: ["PRIVATE ERROR", "prompt: PRIVATE PROMPT", "reference_video: https://secret.example/private", "password: required.", "img_urls: required.\nPRIVATE", "img_urls: required."] }));
+    const text = ui.formatCreditReceipt(receipt);
+    assert.match(text, /img urls: required/);
+    assert.doesNotMatch(text + JSON.stringify(receipt), /PRIVATE|secret\.example|password|https/);
+    const fallback = ui.formatCreditReceipt(ui.parseCreditReceipt(message({ mode: "prepare", errors: ["UNKNOWN PRIVATE RAW EXCEPTION"] })));
+    assert.match(fallback, /Review the selected model's required inputs/);
+    assert.doesNotMatch(fallback, /UNKNOWN|PRIVATE/);
+});
+
+test("failed existing tasks show recovery advice without raw provider exceptions", () => {
+    const receipt = ui.parseCreditReceipt(message({ status: "failed", task_id: "fixture_task", errors: ["PRIVATE PROVIDER ERROR"], actual_credits: 3 }));
+    const text = ui.formatCreditReceipt(receipt);
+    assert.match(text, /resume the existing task/);
+    assert.match(text, /do not generate again/);
+    assert.doesNotMatch(text + JSON.stringify(receipt), /PRIVATE|fixture_task|Media ready/);
+});

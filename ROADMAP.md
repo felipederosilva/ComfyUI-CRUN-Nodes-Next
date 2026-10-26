@@ -1,90 +1,98 @@
 # Product direction
 
-CRUN Next is becoming an Effects and AI Tools workbench for editors. Focused
-native media workflows now sit above the broad catalog. Discovery, implemented
-adapters and verified paid execution are separate readiness levels.
+CRUN Next should give editors complete native-media workflows, with model-specific
+controls and recoverable jobs. Discovery, implemented adapters, local acceptance
+and live provider execution are separate readiness levels.
 
-## Delivered foundations — 0.1 and 0.2
+## Retained foundations — 0.1 to 0.3
 
-- [x] Separate namespace and credentials; KIE Next remains independent.
-- [x] Native settings for key entry, saved-key summary, connection and balance.
-- [x] Windows DPAPI persistence and a separate nonsecret connection receipt.
-- [x] Balance, non-generating cost estimates and existing-task inspection.
-- [x] Public OpenAPI sync with exact IDs, input schemas, provenance and source errors.
-- [x] Models workspace with search/filter and explicit catalog refresh.
-- [x] 274 model/operation definitions, including 273 exact IDs and 18 tools.
-- [x] 64 LLM IDs in the documentation/live union; 55 listed by the live check.
-- [x] Paginated Effects snapshot: 1,063 unique IDs from 1,088 records.
-- [x] Individual catalog nodes and 1,337 safe starter workflows.
-- [x] Compatible media-task gate: validate, estimate, check budget/balance, submit
-  once, return a task ID and keep a local recovery journal.
-- [x] Real authenticated balance, LLM inventory and Effects catalog GET checks.
+- [x] Independent namespace, client, credentials and installation; KIE remains separate.
+- [x] Native settings, Windows DPAPI, safe connection/balance checks and discovery.
+- [x] Bundled 274 operation definitions, 64-ID LLM discovery union, 18 AI Tools and
+  1,063 fixed Effects from the 25 October 2026 snapshot.
+- [x] Schema-defined controls, 62 image/video families and optional credit caps.
+- [x] Simple Prepare/Estimate/Generate actions with no extra permission checkboxes.
+- [x] Single-attempt submission and existing-task Image/Video retrieval.
 
-## Implemented creative workflow layer — 0.3
+The 0.3 audit found metadata-only generator outputs, incomplete per-option
+recipes, absent native VIDEO/AUDIO references and insufficient conditional model
+validation. Prior passing tests did not establish a complete creative workflow.
+These are the reasons for the 0.4 layer below.
 
-- [x] 62 focused image/video family nodes with version dropdowns covering 162
-  operations. Per-model nodes remain under Advanced/Catalog for existing graphs.
-- [x] Selected-model controls: choices, numeric ranges and reference requirements;
-  advanced technical/URL controls collapsed; model changes return to Prepare.
-- [x] Recognized native IMAGE/MASK roles with ordered references. In 0.3.2,
-  Estimate uploads them for a quote; Generate uploads and submits a paid task.
-  Prepare remains offline, with no extra upload/paid checkboxes.
-- [x] Optional credit cap under Advanced: 0 disables that cap, while existing
-  positive limits remain intact across model changes and updates.
-- [x] Display-only credit receipts under generation nodes: last quote, model/time,
-  optional cap, checked balance when available, and a clear no-submission outcome.
-- [x] Credential/content-scoped, memory-only upload cache with a 30-minute TTL.
-- [x] Existing-task Image/Video Result retrieval: bounded polling/download,
-  durable files in output/CRUNResults and native Comfy IMAGE/VIDEO outputs.
-- [x] 62 Studio workflow starters with reference and result preview/save paths,
-  alongside 1,337 per-option catalog starters (1,399 total).
-- [x] Unknown outcomes/timeouts retain the task ID and never create replacements.
+## Implemented for 0.4.0
 
-These paths have offline/fake-transport and local Comfy preparation coverage.
-**Real uploads, live estimates, paid generation and generated-media retrieval
-have not been tested for 0.3.** LLM/dedicated protocols remain prepare-only;
-nested complex references and native VIDEO/AUDIO input uploads remain pending.
+- [x] New creative nodes return native VIDEO, IMAGE/MASK or AUDIO directly after
+  waiting for and saving the selected task result.
+- [x] Old generated/family node IDs and output positions remain under Advanced
+  API Tasks / Legacy Families; new Studio nodes provide the primary creative path.
+- [x] Typed Model/Effect/Tool/Studio recipes include appropriate media sinks and
+  source roles where their output contract is known. Unknown outputs and unsupported
+  protocols remain clearly Advanced API examples.
+- [x] Native simple VIDEO/AUDIO references, including Kling motion VIDEO and
+  Seedance ordered video/audio references; PNG/MP4/WAV preparation/upload adapters.
+- [x] Human field labels, compact ordinary text controls, profile-specific required
+  roles, readable validation/status and distinct credit receipt states.
+- [x] Explicit model guards for documented conditional reference rules, including
+  Kling Omni roles/counts/auto aspect and relevant native metadata limits.
+- [x] Same request/Take resumes its saved task; increase Take for an intentional
+  alternative. Credential-keyed request digests omit raw prompts/reference URLs.
+- [x] Accepted IDs recorded before waiting, cross-process submission coordination,
+  no automatic creative-record eviction and no automatic replacement after an
+  ambiguous submission, timeout or download failure.
+- [x] Explicit Advanced resume ID bypasses old source requirements without upload
+  or submission; Prepare remains local.
+- [x] Durable completed media with verified local reuse, native AUDIO recovery
+  and IMAGE transparency MASK output.
+- [x] Estimated credits, provider-reported actual cost and timestamped remaining
+  balance remain separate; no inferred task cost from balance deltas.
+- [x] Full automated tests and actual Comfy executor acceptance for Prepare,
+  completed Image/Save Image and synthetic VIDEO/AUDIO media sinks.
+- [x] One approved Nano Banana Pro 1K provider round trip and 8-credit actual receipt.
+- [ ] Live video/audio/reference-upload acceptance and final interactive canvas QA.
 
-## Next gate — verified effects and one useful tool
+Implemented means a code path exists. It does not mean live account entitlement,
+provider acceptance, output quality or every prose constraint was tested.
+[VALIDATION.md](VALIDATION.md) records evidence and remaining verification limits.
 
-1. Select one single-image effect, one effect with ordered multiple references
-   and one repair tool. Confirm current parameters, slot semantics, media limits
-   and estimates.
-2. Validate the implemented native IMAGE/MASK upload path against those specific
-   operations. Confirm the media review and per-model reference labels are useful.
-3. Test only the approved paid scope and ceiling. Verify task creation, actual
-   status, provider output and billed credits for representative requests.
-4. Recover accepted IDs after interruption/restart. Ambiguous outcomes must not
-   automatically create replacement jobs.
-5. Exercise the implemented retrieval path with approved generated media; verify
-   decode, dimensions/duration, preview/save behavior, originals and cost receipts.
+## Current acceptance gate
 
-## Priorities after verified execution
+1. Exercise Seedance I2V, Kling Motion Control and Nano Banana/Seedream editing as
+   complete local Comfy graphs: named inputs, valid model controls, native result,
+   playable/visible preview and saved output.
+2. Verify model switching preserves references/caps, Prepare/Estimate block media
+   appropriately, ordinary graph output targeting is correct, and missing inputs
+   appear as readable feedback.
+3. Test same-Take reuse after restart, explicit resume without old references,
+   unknown submission outcome, concurrent-process submission and failed downloads.
+   No replacement may be created automatically.
+4. Verify transparent-image MASK and AUDIO channels/sample-rate behavior, durable
+   local reuse, and independent final cost/balance receipts.
+5. Review model, parameters, references and cost for a representative live request;
+   run only the approved scope. Confirm actual task acceptance, media and billing.
+
+## Next model-specific work
 
 | Feature | Editor benefit | Acceptance evidence |
 | --- | --- | --- |
-| Named reference slots | Know which character, product or frame belongs where | Verified template-specific order/counts |
-| Result adapters | Connect results to downstream Comfy nodes | Implemented IMAGE/VIDEO paths validated with an approved real round trip |
-| Task board and recovery | Resume safely after interruption | Persisted IDs, clear status, explicit retry decisions |
-| Credit receipts | See estimate, reservation, actual cost and balance | Provider task data plus a separate balance read |
-| Effects shelf | Find suitable effects visually | Complete search/filter, opt-in previews and favorites |
-| Repair recipes | Chain removal, inpaint and upscale | Native pipeline with original/result comparison |
-| Audition board | Compare intentional alternative takes | Persistent results, costs and reusable references |
-| LLM protocols | Build creative workflow assistants | Verified separate chat/Responses/Messages contracts |
-| Richer forms | Expose camera, references and modes where supported | Confirmed capabilities and conditional validation |
+| Nested reference editors | Character/motion/voice roles without raw JSON | Exact provider schema plus conditional media checks |
+| Effects slot semantics | Know which subject or frame belongs where | Template-specific order/counts and correct result type |
+| Storyboard and camera editors | Useful structured controls where actually supported | Verified model capability and parameter mapping |
+| Task/asset board | Find, audition and resume previous work | Durable task-to-asset index and no paid regeneration |
+| Characters/reference packs | Consistency across intentional jobs | Saved authorized references, clear roles and reuse |
+| LLM protocols | Creative assistants and media planning | Verified chat/Messages/Responses contracts |
+| 3D-native results | Use actual geometry/assets downstream | Verified result format and an appropriate asset adapter |
+| GIF-specific tools | Preserve actual required formats | Format-aware reference/output adapters |
 
 ## Later gates
 
-- Persistent character/reference packs for reuse across intentional jobs.
-- Native VIDEO/AUDIO input uploads, complex 3D/nested reference adapters and
-  native audio/3D result adapters; image/video result preview/save is implemented.
-- Workflow-safe favorites, shortcuts and provider-specific recipes.
-- Cancellation only where documented; no refund promise.
-- Opt-in batching with an aggregate budget and per-job recovery.
-- Remote/multi-user deployment only after access-control design.
-- Comfy Registry submission after packaging, security and representative
-  execution checks; metadata alone is not a listing or approval.
+- Workflow-safe favorites and keyboard shortcuts.
+- Visual Effects shelf improvements, opt-in previews and favorites.
+- Opt-in batching with aggregate budgets and individual recoverable IDs.
+- Provider cancellation only where documented; no refund promise.
+- Remote/multi-user operation only after access-control and budget isolation design.
+- Comfy Registry submission after packaging, security and representative execution
+  checks; source metadata is not a listing or approval.
 
-Do not infer camera controls, cross-provider parity or account access from
-marketing titles. Do not automatically switch billing providers. Keep public
-coverage, live discovery and tested execution distinct in UI and release notes.
+Do not infer camera controls, provider parity, output type or account access from
+marketing titles. Keep exact wire contracts behind familiar creative controls.
+Never automatically switch the billing provider or replace an uncertain paid task.

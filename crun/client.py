@@ -175,7 +175,7 @@ class CRUNClient:
         return data["task_id"]
 
     def upload_bytes(self, data: bytes, *, mime_type: str = "image/png", extension: str = ".png") -> str:
-        """Upload PNG bytes through the documented CRUN presigned-PUT contract.
+        """Upload validated PNG/MP4/WAV through CRUN's presigned-PUT contract.
 
         API credentials are sent only to the fixed CRUN API endpoint. A new,
         credential-free session performs the storage PUT; neither redirects nor
@@ -183,8 +183,14 @@ class CRUNClient:
         """
         from .effects import _https_url
 
-        if mime_type != "image/png" or extension != ".png" or not isinstance(data, bytes) or not data.startswith(b"\x89PNG\r\n\x1a\n") or len(data) > 20 * 1024 * 1024:
-            raise CRUNError("Native upload expects a PNG image no larger than 20 MiB.")
+        allowed = {
+            ("image/png", ".png"): (20 * 1024 * 1024, lambda b: b.startswith(b"\x89PNG\r\n\x1a\n")),
+            ("video/mp4", ".mp4"): (200 * 1024 * 1024, lambda b: len(b) >= 12 and b[4:8] == b"ftyp"),
+            ("audio/wav", ".wav"): (50 * 1024 * 1024, lambda b: len(b) >= 44 and b[:4] == b"RIFF" and b[8:12] == b"WAVE"),
+        }
+        spec = allowed.get((mime_type, extension))
+        if not spec or not isinstance(data, bytes) or not data or len(data) > spec[0] or not spec[1](data):
+            raise CRUNError("Native upload expects bounded PNG, MP4 or WAV bytes with the matching content type.")
         ticket = self._request("GET", "/api/v1/client/files/upload-url", params={"content_type": mime_type, "ext": extension})
         if not isinstance(ticket, dict) or not _https_url(ticket.get("file_url")) or not _https_url(ticket.get("presigned_url")):
             raise CRUNError("CRUN returned an invalid public HTTPS upload destination.")
@@ -195,7 +201,7 @@ class CRUNClient:
                                            headers={"Content-Type": mime_type},
                                            timeout=(10, 120), allow_redirects=False)
         except requests.RequestException:
-            raise CRUNError("Native image upload failed. No generation was submitted and no automatic retry was made.") from None
+            raise CRUNError("Native media upload failed. No generation was submitted and no automatic retry was made.") from None
         if not 200 <= response.status_code < 300:
-            raise CRUNError("Storage rejected the native image upload. No generation was submitted.", status=response.status_code)
+            raise CRUNError("Storage rejected the native media upload. No generation was submitted.", status=response.status_code)
         return ticket["file_url"]

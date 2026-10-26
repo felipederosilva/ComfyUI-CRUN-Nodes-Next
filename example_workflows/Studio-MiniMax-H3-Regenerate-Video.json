@@ -1,17 +1,17 @@
 {
-  "last_node_id": 4,
-  "last_link_id": 2,
+  "last_node_id": 3,
+  "last_link_id": 1,
   "nodes": [
     {
       "id": 1,
-      "type": "CRUN_Next_Family_MiniMax_H3_Regenerate_Video",
+      "type": "CRUN_Next_Studio_MiniMax_H3_Regenerate_Video",
       "pos": [
-        420,
-        120
+        440,
+        130
       ],
       "size": [
-        500,
-        620
+        510,
+        700
       ],
       "flags": {},
       "order": 1,
@@ -19,65 +19,10 @@
       "inputs": [],
       "outputs": [
         {
-          "name": "result_json",
-          "type": "STRING",
-          "links": null,
-          "slot_index": 0
-        },
-        {
-          "name": "task_id",
-          "type": "STRING",
-          "links": [
-            1
-          ],
-          "slot_index": 1
-        },
-        {
-          "name": "credits",
-          "type": "FLOAT",
-          "links": null,
-          "slot_index": 2
-        }
-      ],
-      "properties": {
-        "Node name for S&R": "CRUN_Next_Family_MiniMax_H3_Regenerate_Video"
-      },
-      "widgets_values": [
-        "H3 Regeneration",
-        "",
-        "prepare",
-        false,
-        0.0
-      ],
-      "title": "CRUN • MiniMax H3 — Regenerate Video"
-    },
-    {
-      "id": 2,
-      "type": "CRUN_Next_Get_Video_Result",
-      "pos": [
-        980,
-        120
-      ],
-      "size": [
-        350,
-        200
-      ],
-      "flags": {},
-      "order": 2,
-      "mode": 0,
-      "inputs": [
-        {
-          "name": "task_id",
-          "type": "STRING",
-          "link": 1
-        }
-      ],
-      "outputs": [
-        {
           "name": "video",
           "type": "VIDEO",
           "links": [
-            2
+            1
           ],
           "slot_index": 0
         },
@@ -88,46 +33,72 @@
           "slot_index": 1
         },
         {
-          "name": "actual_credits",
-          "type": "FLOAT",
+          "name": "task_id",
+          "type": "STRING",
           "links": null,
           "slot_index": 2
         },
         {
-          "name": "task_id",
-          "type": "STRING",
+          "name": "estimated_credits",
+          "type": "FLOAT",
           "links": null,
           "slot_index": 3
+        },
+        {
+          "name": "actual_credits",
+          "type": "FLOAT",
+          "links": null,
+          "slot_index": 4
+        },
+        {
+          "name": "credits_left",
+          "type": "FLOAT",
+          "links": null,
+          "slot_index": 5
+        },
+        {
+          "name": "result_json",
+          "type": "STRING",
+          "links": null,
+          "slot_index": 6
         }
       ],
       "properties": {
-        "Node name for S&R": "CRUN_Next_Get_Video_Result"
+        "Node name for S&R": "CRUN_Next_Studio_MiniMax_H3_Regenerate_Video"
       },
       "widgets_values": [
+        "H3 Regeneration",
+        "",
+        "prepare",
+        false,
+        0.0,
+        0,
+        "",
         0,
         1200,
         3.0
-      ]
+      ],
+      "title": "CRUN • MiniMax H3 — Regenerate Video"
     },
     {
-      "id": 3,
+      "id": 2,
       "type": "SaveVideo",
       "pos": [
-        980,
-        370
+        1000,
+        130
       ],
       "size": [
-        460,
-        340
+        480,
+        380
       ],
       "flags": {},
-      "order": 3,
+      "order": 2,
       "mode": 0,
       "inputs": [
         {
           "name": "video",
           "type": "VIDEO",
-          "link": 2
+          "link": 1
         }
       ],
       "outputs": [
@@ -148,26 +119,26 @@
       ]
     },
     {
-      "id": 4,
+      "id": 3,
       "type": "Note",
-      "title": "Studio guide — expand for instructions",
       "pos": [
         30,
         60
       ],
       "size": [
-        320,
-        580
+        340,
+        620
       ],
       "flags": {
         "collapsed": true
       },
-      "order": 4,
+      "order": 3,
       "mode": 0,
       "properties": {},
       "widgets_values": [
-        "CRUN NEXT STUDIO — MiniMax H3 — Regenerate Video\n\n1. Select a model version in the model dropdown. Only its supported controls are shown.\n2. Write the scene or edit instruction in prompt. Review the selected model's requirements.\n\nSTART: Action=prepare. The optional credit cap is disabled at 0.\nPreparation runs locally and reports validation errors without uploads or provider charges.\nEstimate uploads connected references and requests a price. Generate uploads them and submits a paid task.\nThe last quote is visible on the node. An optional positive credit cap can be set under Advanced; 0 disables it.\nNever put an API key in this graph. Configure it under Settings > CRUN Next.\n\nDefault model: minimax/h3-regeneration\nNo native image reference is used by this model.\nDocumentation: https://docs.crun.ai/models/minimax/h3-regeneration\n\nAFTER SUBMISSION: Get Result polls this same task ID, saves the provider result locally and passes native media to Preview Image / Save Video.\nPrepare/estimate returns no task ID, so result retrieval and preview are blocked without network activity.\nA timeout preserves the task ID: rerun Get Result, never automatically regenerate.\nThis starter is not evidence of a completed or tested paid generation."
+        "CRUN NEXT STUDIO — MiniMax H3 — Regenerate Video\n\n1. Select the model version. Only the selected model's documented controls apply.\n2. Choose the local references in the connected Load nodes and write the scene/edit prompt.\n3. Use Prepare to review missing-input validation locally. Estimate uploads needed references and requests a quote.\n4. Generate submits once and returns native VIDEO directly to Preview/Save after completion.\n\nSTART: Action=prepare; optional credit cap=0; Take=0.\nAn existing positive optional cap is always respected. Set a cap under Advanced if desired.\nThe same settings and Take resume/reuse their existing task, including after restart. Increase Take only for an intentional new paid result.\nAfter a timeout, keep the task ID and resume retrieval. Never automatically generate a replacement.\nEnter the API key only through Settings > CRUN Next, never in this graph.\n\nDefault model: minimax/h3-regeneration\nThis model uses no native reference input.\nDocumentation: https://docs.crun.ai/models/minimax/h3-regeneration\n\nPrepare/Estimate deliberately block the media sink; no fake image/video is passed downstream.\nThis starter is not evidence of an authorized, completed paid provider round trip."
       ],
+      "title": "Workflow guide — expand for instructions",
       "color": "#263341",
       "bgcolor": "#17232d"
     }
@@ -176,16 +147,8 @@
     [
       1,
       1,
-      1,
-      2,
       0,
-      "STRING"
-    ],
-    [
       2,
-      2,
-      0,
-      3,
       0,
       "VIDEO"
     ]
@@ -203,10 +166,13 @@
     "crun_next": {
       "family_id": "CRUN_Next_Family_MiniMax_H3_Regenerate_Video",
       "model": "minimax/h3-regeneration",
+      "output_kind": "video",
       "default_mode": "prepare",
       "native_inputs_connected": [],
-      "result_node": "CRUN_Next_Get_Video_Result",
       "preview_node": "SaveVideo",
+      "result_node": null,
+      "node_type": "CRUN_Next_Studio_MiniMax_H3_Regenerate_Video",
+      "workflow_type": "creative_native_media",
       "generation_tested": false
     }
   },

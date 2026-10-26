@@ -7,6 +7,7 @@
   "entries": [
     {
       "family_id": "CRUN_Next_Family_Flux_Generate_Edit_Image",
+      "node_type": "CRUN_Next_Studio_Flux_Generate_Edit_Image",
       "family": "Flux",
       "task": "Generate & Edit Image",
       "path": "Studio-Flux-Generate-Edit-Image.json",
@@ -22,11 +23,12 @@
       "native_inputs_connected": [
         "image"
       ],
-      "result_node": "CRUN_Next_Get_Image_Result",
+      "result_node": null,
       "preview_node": "PreviewImage"
     },
     {
       "family_id": "CRUN_Next_Family_Flux_Kontext_Generate_Edit_Image",
+      "node_type": "CRUN_Next_Studio_Flux_Kontext_Generate_Edit_Image",
       "family": "Flux Kontext",
       "task": "Generate & Edit Image",
       "path": "Studio-Flux-Kontext-Generate-Edit-Image.json",
@@ -38,11 +40,12 @@
       "native_inputs_connected": [
         "image"
       ],
-      "result_node": "CRUN_Next_Get_Image_Result",
+      "result_node": null,
       "preview_node": "PreviewImage"
     },
     {
       "family_id": "CRUN_Next_Family_GPT_Image_Generate_Edit_Image",
+      "node_type": "CRUN_Next_Studio_GPT_Image_Generate_Edit_Image",
       "family": "GPT Image",
       "task": "Generate & Edit Image",
       "path": "Studio-GPT-Image-Generate-Edit-Image.json",
@@ -59,11 +62,12 @@
       "native_inputs_connected": [
         "image"
       ],
-      "result_node": "CRUN_Next_Get_Image_Result",
+      "result_node": null,
       "preview_node": "PreviewImage"
     },
     {
       "family_id": "CRUN_Next_Family_Grok_Imagine_Image_Editing",
+      "node_type": "CRUN_Next_Studio_Grok_Imagine_Image_Editing",
       "family": "Grok Imagine",
       "task": "Image Editing",
       "path": "Studio-Grok-Imagine-Image-Editing.json",
@@ -74,11 +78,12 @@
       "native_inputs_connected": [
         "image"
       ],
-      "result_node": "CRUN_Next_Get_Image_Result",
+      "result_node": null,
       "preview_node": "PreviewImage"
     },
     {
       "family_id": "CRUN_Next_Family_Grok_Imagine_Text_to_Image",
+      "node_type": "CRUN_Next_Studio_Grok_Imagine_Text_to_Image",
       "family": "Grok Imagine",
       "task": "Text to Image",
       "path": "Studio-Grok-Imagine-Text-to-Image.json",
@@ -88,11 +93,12 @@
       ],
       "default_model": "grok-imagine/t2i",
       "native_inputs_connected": [],
-      "result_node": "CRUN_Next_Get_Image_Result",
+      "result_node": null,
       "preview_node": "PreviewImage"
     },
     {
       "family_id": "CRUN_Next_Family_Imagen_Text_to_Image",
+      "node_type": "CRUN_Next_Studio_Imagen_Text_to_Image",
       "family": "Imagen",
       "task": "Text to Image",
       "path": "Studio-Imagen-Text-to-Image.json",
@@ -101,11 +107,12 @@
       ],
       "default_model": "google/image-4",
       "native_inputs_connected": [],
-      "result_node": "CRUN_Next_Get_Image_Result",
+      "result_node": null,
       "preview_node": "PreviewImage"
     },
     {
       "family_id": "CRUN_Next_Family_Nano_Banana_Generate_Edit_Image",
+      "node_type": "CRUN_Next_Studio_Nano_Banana_Generate_Edit_Image",
       "family": "Nano Banana",
       "task": "Generate & Edit Image",
       "path": "Studio-Nano-Banana-Generate-Edit-Image.json",
@@ -123,11 +130,12 @@
       "native_inputs_connected": [
         "image"
       ],
-      "result_node": "CRUN_Next_Get_Image_Result",
+      "result_node": null,
       "preview_node": "PreviewImage"
     },
     {
       "family_id": "CRUN_Next_Family_Qwen_Image_Generate_Edit_Image",
+      "node_type": "CRUN_Next_Studio_Qwen_Image_Generate_Edit_Image",
       "family": "Qwen Image",
       "task": "Generate & Edit Image",
       "path": "Studio-Qwen-Image-Generate-Edit-Image.json",
@@ -139,11 +147,12 @@
       "native_inputs_connected": [
         "image"
       ],
-      "result_node": "CRUN_Next_Get_Image_Result",
+      "result_node": null,
       "preview_node": "PreviewImage"
     },
     {
       "family_id": "CRUN_Next_Family_Qwen_Image_Text_to_Image",
+      "node_type": "CRUN_Next_Studio_Qwen_Image_Text_to_Image",
       "family": "Qwen Image",
       "task": "Text to Image",
       "path": "Studio-Qwen-Image-Text-to-Image.json",
@@ -156,11 +165,12 @@
       ],
       "default_model": "qwen-image",
       "native_inputs_connected": [],
-      "result_node": "CRUN_Next_Get_Image_Result",
+      "result_node": null,
       "preview_node": "PreviewImage"
     },
     {
       "family_id": "CRUN_Next_Family_Qwen_Image_Edit_Image_Editing",
+      "node_type": "CRUN_Next_Studio_Qwen_Image_Edit_Image_Editing",
       "family": "Qwen Image Edit",
       "task": "Image Editing",
       "path": "Studio-Qwen-Image-Edit-Image-Editing.json",
@@ -175,11 +185,12 @@
       "native_inputs_connected": [
         "image"
       ],
-      "result_node": "CRUN_Next_Get_Image_Result",
+      "result_node": null,
       "preview_node": "PreviewImage"
     },
     {
       "family_id": "CRUN_Next_Family_Seedream_Generate_Edit_Image",
+      "node_type": "CRUN_Next_Studio_Seedream_Generate_Edit_Image",
       "family": "Seedream",
       "task": "Generate & Edit Image",
       "path": "Studio-Seedream-Generate-Edit-Image.json",
@@ -193,11 +204,12 @@
       "native_inputs_connected": [
         "image"
       ],
-      "result_node": "CRUN_Next_Get_Image_Result",
+      "result_node": null,
       "preview_node": "PreviewImage"
     },
     {
       "family_id": "CRUN_Next_Family_Wan_Generate_Edit_Image",
+      "node_type": "CRUN_Next_Studio_Wan_Generate_Edit_Image",
       "family": "Wan",
       "task": "Generate & Edit Image",
       "path": "Studio-Wan-Generate-Edit-Image.json",
@@ -210,11 +222,12 @@
       "native_inputs_connected": [
         "image"
       ],
-      "result_node": "CRUN_Next_Get_Image_Result",
+      "result_node": null,
       "preview_node": "PreviewImage"
     },
     {
       "family_id": "CRUN_Next_Family_Z_Image_Text_to_Image",
+      "node_type": "CRUN_Next_Studio_Z_Image_Text_to_Image",
       "family": "Z Image",
       "task": "Text to Image",
       "path": "Studio-Z-Image-Text-to-Image.json",
@@ -223,11 +236,12 @@
       ],
       "default_model": "z-image",
       "native_inputs_connected": [],
-      "result_node": "CRUN_Next_Get_Image_Result",
+      "result_node": null,
       "preview_node": "PreviewImage"
     },
     {
       "family_id": "CRUN_Next_Family_Agnes_Image_to_Video",
+      "node_type": "CRUN_Next_Studio_Agnes_Image_to_Video",
       "family": "Agnes",
       "task": "Image to Video",
       "path": "Studio-Agnes-Image-to-Video.json",
@@ -238,11 +252,12 @@
       "native_inputs_connected": [
         "first_frame"
       ],
-      "result_node": "CRUN_Next_Get_Video_Result",
+      "result_node": null,
       "preview_node": "SaveVideo"
     },
     {
       "family_id": "CRUN_Next_Family_Agnes_Reference_to_Video",
+      "node_type": "CRUN_Next_Studio_Agnes_Reference_to_Video",
       "family": "Agnes",
       "task": "Reference to Video",
       "path": "Studio-Agnes-Reference-to-Video.json",
@@ -253,11 +268,12 @@
       "native_inputs_connected": [
         "reference_images"
       ],
-      "result_node": "CRUN_Next_Get_Video_Result",
+      "result_node": null,
       "preview_node": "SaveVideo"
     },
     {
       "family_id": "CRUN_Next_Family_Agnes_Text_to_Video",
+      "node_type": "CRUN_Next_Studio_Agnes_Text_to_Video",
       "family": "Agnes",
       "task": "Text to Video",
       "path": "Studio-Agnes-Text-to-Video.json",
@@ -266,11 +282,12 @@
       ],
       "default_model": "agnes/video-2-5-t2v",
       "native_inputs_connected": [],
-      "result_node": "CRUN_Next_Get_Video_Result",
+      "result_node": null,
       "preview_node": "SaveVideo"
     },
     {
       "family_id": "CRUN_Next_Family_DreamActor_Motion_Control",
+      "node_type": "CRUN_Next_Studio_DreamActor_Motion_Control",
       "family": "DreamActor",
       "task": "Motion Control",
       "path": "Studio-DreamActor-Motion-Control.json",
@@ -279,13 +296,15 @@
       ],
       "default_model": "bytedance/dreamactor",
       "native_inputs_connected": [
-        "image"
+        "image",
+        "reference_video"
       ],
-      "result_node": "CRUN_Next_Get_Video_Result",
+      "result_node": null,
       "preview_node": "SaveVideo"
     },
     {
       "family_id": "CRUN_Next_Family_Gemini_Omni_Text_Image_to_Video",
+      "node_type": "CRUN_Next_Studio_Gemini_Omni_Text_Image_to_Video",
       "family": "Gemini Omni",
       "task": "Text / Image to Video",
       "path": "Studio-Gemini-Omni-Text-Image-to-Video.json",
@@ -297,11 +316,12 @@
       "native_inputs_connected": [
         "image"
       ],
-      "result_node": "CRUN_Next_Get_Video_Result",
+      "result_node": null,
       "preview_node": "SaveVideo"
     },
     {
       "family_id": "CRUN_Next_Family_Grok_Imagine_Image_to_Video",
+      "node_type": "CRUN_Next_Studio_Grok_Imagine_Image_to_Video",
       "family": "Grok Imagine",
       "task": "Image to Video",
       "path": "Studio-Grok-Imagine-Image-to-Video.json",
@@ -312,11 +332,12 @@
       "native_inputs_connected": [
         "first_frame"
       ],
-      "result_node": "CRUN_Next_Get_Video_Result",
+      "result_node": null,
       "preview_node": "SaveVideo"
     },
     {
       "family_id": "CRUN_Next_Family_Grok_Imagine_Text_Image_to_Video",
+      "node_type": "CRUN_Next_Studio_Grok_Imagine_Text_Image_to_Video",
       "family": "Grok Imagine",
       "task": "Text / Image to Video",
       "path": "Studio-Grok-Imagine-Text-Image-to-Video.json",
@@ -328,11 +349,12 @@
       "native_inputs_connected": [
         "image"
       ],
-      "result_node": "CRUN_Next_Get_Video_Result",
+      "result_node": null,
       "preview_node": "SaveVideo"
     },
     {
       "family_id": "CRUN_Next_Family_Grok_Imagine_Text_to_Video",
+      "node_type": "CRUN_Next_Studio_Grok_Imagine_Text_to_Video",
       "family": "Grok Imagine",
       "task": "Text to Video",
       "path": "Studio-Grok-Imagine-Text-to-Video.json",
@@ -341,11 +363,12 @@
       ],
       "default_model": "grok-imagine/t2v",
       "native_inputs_connected": [],
-      "result_node": "CRUN_Next_Get_Video_Result",
+      "result_node": null,
       "preview_node": "SaveVideo"
     },
     {
       "family_id": "CRUN_Next_Family_Hailuo_Image_to_Video",
+      "node_type": "CRUN_Next_Studio_Hailuo_Image_to_Video",
       "family": "Hailuo",
       "task": "Image to Video",
       "path": "Studio-Hailuo-Image-to-Video.json",
@@ -356,11 +379,12 @@
       "native_inputs_connected": [
         "image"
       ],
-      "result_node": "CRUN_Next_Get_Video_Result",
+      "result_node": null,
       "preview_node": "SaveVideo"
     },
     {
       "family_id": "CRUN_Next_Family_Hailuo_Text_Image_to_Video",
+      "node_type": "CRUN_Next_Studio_Hailuo_Text_Image_to_Video",
       "family": "Hailuo",
       "task": "Text / Image to Video",
       "path": "Studio-Hailuo-Text-Image-to-Video.json",
@@ -371,11 +395,12 @@
       "native_inputs_connected": [
         "image"
       ],
-      "result_node": "CRUN_Next_Get_Video_Result",
+      "result_node": null,
       "preview_node": "SaveVideo"
     },
     {
       "family_id": "CRUN_Next_Family_HappyHorse_Image_to_Video",
+      "node_type": "CRUN_Next_Studio_HappyHorse_Image_to_Video",
       "family": "HappyHorse",
       "task": "Image to Video",
       "path": "Studio-HappyHorse-Image-to-Video.json",
@@ -387,11 +412,12 @@
       "native_inputs_connected": [
         "first_frame"
       ],
-      "result_node": "CRUN_Next_Get_Video_Result",
+      "result_node": null,
       "preview_node": "SaveVideo"
     },
     {
       "family_id": "CRUN_Next_Family_HappyHorse_Reference_to_Video",
+      "node_type": "CRUN_Next_Studio_HappyHorse_Reference_to_Video",
       "family": "HappyHorse",
       "task": "Reference to Video",
       "path": "Studio-HappyHorse-Reference-to-Video.json",
@@ -403,11 +429,12 @@
       "native_inputs_connected": [
         "reference_images"
       ],
-      "result_node": "CRUN_Next_Get_Video_Result",
+      "result_node": null,
       "preview_node": "SaveVideo"
     },
     {
       "family_id": "CRUN_Next_Family_HappyHorse_Text_to_Video",
+      "node_type": "CRUN_Next_Studio_HappyHorse_Text_to_Video",
       "family": "HappyHorse",
       "task": "Text to Video",
       "path": "Studio-HappyHorse-Text-to-Video.json",
@@ -417,11 +444,12 @@
       ],
       "default_model": "happyhorse-1-1-t2v",
       "native_inputs_connected": [],
-      "result_node": "CRUN_Next_Get_Video_Result",
+      "result_node": null,
       "preview_node": "SaveVideo"
     },
     {
       "family_id": "CRUN_Next_Family_HappyHorse_Video_Editing",
+      "node_type": "CRUN_Next_Studio_HappyHorse_Video_Editing",
       "family": "HappyHorse",
       "task": "Video Editing",
       "path": "Studio-HappyHorse-Video-Editing.json",
@@ -430,13 +458,14 @@
       ],
       "default_model": "happyhorse-1-0-video-edit",
       "native_inputs_connected": [
-        "image"
+        "source_video"
       ],
-      "result_node": "CRUN_Next_Get_Video_Result",
+      "result_node": null,
       "preview_node": "SaveVideo"
     },
     {
       "family_id": "CRUN_Next_Family_Kling_Image_to_Video",
+      "node_type": "CRUN_Next_Studio_Kling_Image_to_Video",
       "family": "Kling",
       "task": "Image to Video",
       "path": "Studio-Kling-Image-to-Video.json",
@@ -449,11 +478,12 @@
       "native_inputs_connected": [
         "first_frame"
       ],
-      "result_node": "CRUN_Next_Get_Video_Result",
+      "result_node": null,
       "preview_node": "SaveVideo"
     },
     {
       "family_id": "CRUN_Next_Family_Kling_Motion_Control",
+      "node_type": "CRUN_Next_Studio_Kling_Motion_Control",
       "family": "Kling",
       "task": "Motion Control",
       "path": "Studio-Kling-Motion-Control.json",
@@ -463,13 +493,15 @@
       ],
       "default_model": "kling/v3-motion-control",
       "native_inputs_connected": [
-        "image"
+        "image",
+        "motion_video"
       ],
-      "result_node": "CRUN_Next_Get_Video_Result",
+      "result_node": null,
       "preview_node": "SaveVideo"
     },
     {
       "family_id": "CRUN_Next_Family_Kling_Reference_to_Video",
+      "node_type": "CRUN_Next_Studio_Kling_Reference_to_Video",
       "family": "Kling",
       "task": "Reference to Video",
       "path": "Studio-Kling-Reference-to-Video.json",
@@ -481,11 +513,12 @@
       "native_inputs_connected": [
         "reference_images"
       ],
-      "result_node": "CRUN_Next_Get_Video_Result",
+      "result_node": null,
       "preview_node": "SaveVideo"
     },
     {
       "family_id": "CRUN_Next_Family_Kling_Talking_Avatar",
+      "node_type": "CRUN_Next_Studio_Kling_Talking_Avatar",
       "family": "Kling",
       "task": "Talking Avatar",
       "path": "Studio-Kling-Talking-Avatar.json",
@@ -494,13 +527,15 @@
       ],
       "default_model": "kling/avatar",
       "native_inputs_connected": [
-        "image"
+        "image",
+        "reference_audio"
       ],
-      "result_node": "CRUN_Next_Get_Video_Result",
+      "result_node": null,
       "preview_node": "SaveVideo"
     },
     {
       "family_id": "CRUN_Next_Family_Kling_Text_Image_to_Video",
+      "node_type": "CRUN_Next_Studio_Kling_Text_Image_to_Video",
       "family": "Kling",
       "task": "Text / Image to Video",
       "path": "Studio-Kling-Text-Image-to-Video.json",
@@ -515,11 +550,12 @@
       "native_inputs_connected": [
         "image"
       ],
-      "result_node": "CRUN_Next_Get_Video_Result",
+      "result_node": null,
       "preview_node": "SaveVideo"
     },
     {
       "family_id": "CRUN_Next_Family_Kling_Text_to_Video",
+      "node_type": "CRUN_Next_Studio_Kling_Text_to_Video",
       "family": "Kling",
       "task": "Text to Video",
       "path": "Studio-Kling-Text-to-Video.json",
@@ -529,11 +565,12 @@
       ],
       "default_model": "kling/v3-omni-t2v",
       "native_inputs_connected": [],
-      "result_node": "CRUN_Next_Get_Video_Result",
+      "result_node": null,
       "preview_node": "SaveVideo"
     },
     {
       "family_id": "CRUN_Next_Family_MiniMax_H3_Image_to_Video",
+      "node_type": "CRUN_Next_Studio_MiniMax_H3_Image_to_Video",
       "family": "MiniMax H3",
       "task": "Image to Video",
       "path": "Studio-MiniMax-H3-Image-to-Video.json",
@@ -544,11 +581,12 @@
       "native_inputs_connected": [
         "first_frame"
       ],
-      "result_node": "CRUN_Next_Get_Video_Result",
+      "result_node": null,
       "preview_node": "SaveVideo"
     },
     {
       "family_id": "CRUN_Next_Family_MiniMax_H3_Reference_to_Video",
+      "node_type": "CRUN_Next_Studio_MiniMax_H3_Reference_to_Video",
       "family": "MiniMax H3",
       "task": "Reference to Video",
       "path": "Studio-MiniMax-H3-Reference-to-Video.json",
@@ -559,11 +597,12 @@
       "native_inputs_connected": [
         "reference_images"
       ],
-      "result_node": "CRUN_Next_Get_Video_Result",
+      "result_node": null,
       "preview_node": "SaveVideo"
     },
     {
       "family_id": "CRUN_Next_Family_MiniMax_H3_Regenerate_Video",
+      "node_type": "CRUN_Next_Studio_MiniMax_H3_Regenerate_Video",
       "family": "MiniMax H3",
       "task": "Regenerate Video",
       "path": "Studio-MiniMax-H3-Regenerate-Video.json",
@@ -572,11 +611,12 @@
       ],
       "default_model": "minimax/h3-regeneration",
       "native_inputs_connected": [],
-      "result_node": "CRUN_Next_Get_Video_Result",
+      "result_node": null,
       "preview_node": "SaveVideo"
     },
     {
       "family_id": "CRUN_Next_Family_MiniMax_H3_Text_to_Video",
+      "node_type": "CRUN_Next_Studio_MiniMax_H3_Text_to_Video",
       "family": "MiniMax H3",
       "task": "Text to Video",
       "path": "Studio-MiniMax-H3-Text-to-Video.json",
@@ -585,11 +625,12 @@
       ],
       "default_model": "minimax/h3-t2v",
       "native_inputs_connected": [],
-      "result_node": "CRUN_Next_Get_Video_Result",
+      "result_node": null,
       "preview_node": "SaveVideo"
     },
     {
       "family_id": "CRUN_Next_Family_PixVerse_Image_to_Video",
+      "node_type": "CRUN_Next_Studio_PixVerse_Image_to_Video",
       "family": "PixVerse",
       "task": "Image to Video",
       "path": "Studio-PixVerse-Image-to-Video.json",
@@ -600,11 +641,12 @@
       "native_inputs_connected": [
         "first_frame"
       ],
-      "result_node": "CRUN_Next_Get_Video_Result",
+      "result_node": null,
       "preview_node": "SaveVideo"
     },
     {
       "family_id": "CRUN_Next_Family_PixVerse_Reference_to_Video",
+      "node_type": "CRUN_Next_Studio_PixVerse_Reference_to_Video",
       "family": "PixVerse",
       "task": "Reference to Video",
       "path": "Studio-PixVerse-Reference-to-Video.json",
@@ -615,11 +657,12 @@
       "native_inputs_connected": [
         "reference_images"
       ],
-      "result_node": "CRUN_Next_Get_Video_Result",
+      "result_node": null,
       "preview_node": "SaveVideo"
     },
     {
       "family_id": "CRUN_Next_Family_PixVerse_Text_to_Video",
+      "node_type": "CRUN_Next_Studio_PixVerse_Text_to_Video",
       "family": "PixVerse",
       "task": "Text to Video",
       "path": "Studio-PixVerse-Text-to-Video.json",
@@ -628,11 +671,12 @@
       ],
       "default_model": "pixverse/v6-t2v",
       "native_inputs_connected": [],
-      "result_node": "CRUN_Next_Get_Video_Result",
+      "result_node": null,
       "preview_node": "SaveVideo"
     },
     {
       "family_id": "CRUN_Next_Family_Pruna_P_Video_Talking_Avatar",
+      "node_type": "CRUN_Next_Studio_Pruna_P_Video_Talking_Avatar",
       "family": "Pruna P Video",
       "task": "Talking Avatar",
       "path": "Studio-Pruna-P-Video-Talking-Avatar.json",
@@ -643,11 +687,12 @@
       "native_inputs_connected": [
         "image"
       ],
-      "result_node": "CRUN_Next_Get_Video_Result",
+      "result_node": null,
       "preview_node": "SaveVideo"
     },
     {
       "family_id": "CRUN_Next_Family_Runway_Text_Image_to_Video",
+      "node_type": "CRUN_Next_Studio_Runway_Text_Image_to_Video",
       "family": "Runway",
       "task": "Text / Image to Video",
       "path": "Studio-Runway-Text-Image-to-Video.json",
@@ -658,11 +703,12 @@
       "native_inputs_connected": [
         "image"
       ],
-      "result_node": "CRUN_Next_Get_Video_Result",
+      "result_node": null,
       "preview_node": "SaveVideo"
     },
     {
       "family_id": "CRUN_Next_Family_Runway_Video_Editing",
+      "node_type": "CRUN_Next_Studio_Runway_Video_Editing",
       "family": "Runway",
       "task": "Video Editing",
       "path": "Studio-Runway-Video-Editing.json",
@@ -671,13 +717,14 @@
       ],
       "default_model": "runway/gen-4-aleph",
       "native_inputs_connected": [
-        "image"
+        "source_video"
       ],
-      "result_node": "CRUN_Next_Get_Video_Result",
+      "result_node": null,
       "preview_node": "SaveVideo"
     },
     {
       "family_id": "CRUN_Next_Family_Seedance_Image_to_Video",
+      "node_type": "CRUN_Next_Studio_Seedance_Image_to_Video",
       "family": "Seedance",
       "task": "Image to Video",
       "path": "Studio-Seedance-Image-to-Video.json",
@@ -695,11 +742,12 @@
       "native_inputs_connected": [
         "first_frame"
       ],
-      "result_node": "CRUN_Next_Get_Video_Result",
+      "result_node": null,
       "preview_node": "SaveVideo"
     },
     {
       "family_id": "CRUN_Next_Family_Seedance_Reference_to_Video",
+      "node_type": "CRUN_Next_Studio_Seedance_Reference_to_Video",
       "family": "Seedance",
       "task": "Reference to Video",
       "path": "Studio-Seedance-Reference-to-Video.json",
@@ -714,11 +762,12 @@
       "native_inputs_connected": [
         "reference_images"
       ],
-      "result_node": "CRUN_Next_Get_Video_Result",
+      "result_node": null,
       "preview_node": "SaveVideo"
     },
     {
       "family_id": "CRUN_Next_Family_Seedance_Text_to_Video",
+      "node_type": "CRUN_Next_Studio_Seedance_Text_to_Video",
       "family": "Seedance",
       "task": "Text to Video",
       "path": "Studio-Seedance-Text-to-Video.json",
@@ -734,11 +783,12 @@
       ],
       "default_model": "bytedance/seedance2-5-t2v",
       "native_inputs_connected": [],
-      "result_node": "CRUN_Next_Get_Video_Result",
+      "result_node": null,
       "preview_node": "SaveVideo"
     },
     {
       "family_id": "CRUN_Next_Family_Sora_Storyboard_Video",
+      "node_type": "CRUN_Next_Studio_Sora_Storyboard_Video",
       "family": "Sora",
       "task": "Storyboard Video",
       "path": "Studio-Sora-Storyboard-Video.json",
@@ -749,11 +799,12 @@
       "native_inputs_connected": [
         "image"
       ],
-      "result_node": "CRUN_Next_Get_Video_Result",
+      "result_node": null,
       "preview_node": "SaveVideo"
     },
     {
       "family_id": "CRUN_Next_Family_Sora_Text_Image_to_Video",
+      "node_type": "CRUN_Next_Studio_Sora_Text_Image_to_Video",
       "family": "Sora",
       "task": "Text / Image to Video",
       "path": "Studio-Sora-Text-Image-to-Video.json",
@@ -765,11 +816,12 @@
       "native_inputs_connected": [
         "image"
       ],
-      "result_node": "CRUN_Next_Get_Video_Result",
+      "result_node": null,
       "preview_node": "SaveVideo"
     },
     {
       "family_id": "CRUN_Next_Family_Veo_Image_to_Video",
+      "node_type": "CRUN_Next_Studio_Veo_Image_to_Video",
       "family": "Veo",
       "task": "Image to Video",
       "path": "Studio-Veo-Image-to-Video.json",
@@ -782,11 +834,12 @@
       "native_inputs_connected": [
         "first_frame"
       ],
-      "result_node": "CRUN_Next_Get_Video_Result",
+      "result_node": null,
       "preview_node": "SaveVideo"
     },
     {
       "family_id": "CRUN_Next_Family_Veo_Reference_to_Video",
+      "node_type": "CRUN_Next_Studio_Veo_Reference_to_Video",
       "family": "Veo",
       "task": "Reference to Video",
       "path": "Studio-Veo-Reference-to-Video.json",
@@ -798,11 +851,12 @@
       "native_inputs_connected": [
         "reference_images"
       ],
-      "result_node": "CRUN_Next_Get_Video_Result",
+      "result_node": null,
       "preview_node": "SaveVideo"
     },
     {
       "family_id": "CRUN_Next_Family_Veo_Text_to_Video",
+      "node_type": "CRUN_Next_Studio_Veo_Text_to_Video",
       "family": "Veo",
       "task": "Text to Video",
       "path": "Studio-Veo-Text-to-Video.json",
@@ -813,11 +867,12 @@
       ],
       "default_model": "google/veo3-1-t2v",
       "native_inputs_connected": [],
-      "result_node": "CRUN_Next_Get_Video_Result",
+      "result_node": null,
       "preview_node": "SaveVideo"
     },
     {
       "family_id": "CRUN_Next_Family_Vidu_First_Last_Frames_to_Video",
+      "node_type": "CRUN_Next_Studio_Vidu_First_Last_Frames_to_Video",
       "family": "Vidu",
       "task": "First & Last Frames to Video",
       "path": "Studio-Vidu-First-Last-Frames-to-Video.json",
@@ -832,11 +887,12 @@
         "first_frame",
         "last_frame"
       ],
-      "result_node": "CRUN_Next_Get_Video_Result",
+      "result_node": null,
       "preview_node": "SaveVideo"
     },
     {
       "family_id": "CRUN_Next_Family_Vidu_Image_to_Video",
+      "node_type": "CRUN_Next_Studio_Vidu_Image_to_Video",
       "family": "Vidu",
       "task": "Image to Video",
       "path": "Studio-Vidu-Image-to-Video.json",
@@ -854,11 +910,12 @@
       "native_inputs_connected": [
         "first_frame"
       ],
-      "result_node": "CRUN_Next_Get_Video_Result",
+      "result_node": null,
       "preview_node": "SaveVideo"
     },
     {
       "family_id": "CRUN_Next_Family_Vidu_Lip_Sync",
+      "node_type": "CRUN_Next_Studio_Vidu_Lip_Sync",
       "family": "Vidu",
       "task": "Lip Sync",
       "path": "Studio-Vidu-Lip-Sync.json",
@@ -866,12 +923,15 @@
         "vidu/lip-sync"
       ],
       "default_model": "vidu/lip-sync",
-      "native_inputs_connected": [],
-      "result_node": "CRUN_Next_Get_Video_Result",
+      "native_inputs_connected": [
+        "source_video"
+      ],
+      "result_node": null,
       "preview_node": "SaveVideo"
     },
     {
       "family_id": "CRUN_Next_Family_Vidu_Reference_to_Video",
+      "node_type": "CRUN_Next_Studio_Vidu_Reference_to_Video",
       "family": "Vidu",
       "task": "Reference to Video",
       "path": "Studio-Vidu-Reference-to-Video.json",
@@ -886,11 +946,12 @@
       "native_inputs_connected": [
         "reference_images"
       ],
-      "result_node": "CRUN_Next_Get_Video_Result",
+      "result_node": null,
       "preview_node": "SaveVideo"
     },
     {
       "family_id": "CRUN_Next_Family_Vidu_Text_to_Video",
+      "node_type": "CRUN_Next_Studio_Vidu_Text_to_Video",
       "family": "Vidu",
       "task": "Text to Video",
       "path": "Studio-Vidu-Text-to-Video.json",
@@ -902,11 +963,12 @@
       ],
       "default_model": "vidu/q3-pro-t2v",
       "native_inputs_connected": [],
-      "result_node": "CRUN_Next_Get_Video_Result",
+      "result_node": null,
       "preview_node": "SaveVideo"
     },
     {
       "family_id": "CRUN_Next_Family_Wan_Animate_Motion",
+      "node_type": "CRUN_Next_Studio_Wan_Animate_Motion",
       "family": "Wan",
       "task": "Animate Motion",
       "path": "Studio-Wan-Animate-Motion.json",
@@ -915,13 +977,15 @@
       ],
       "default_model": "wan/2-2-animate-move",
       "native_inputs_connected": [
-        "image"
+        "image",
+        "motion_video"
       ],
-      "result_node": "CRUN_Next_Get_Video_Result",
+      "result_node": null,
       "preview_node": "SaveVideo"
     },
     {
       "family_id": "CRUN_Next_Family_Wan_Image_to_Video",
+      "node_type": "CRUN_Next_Studio_Wan_Image_to_Video",
       "family": "Wan",
       "task": "Image to Video",
       "path": "Studio-Wan-Image-to-Video.json",
@@ -936,11 +1000,12 @@
       "native_inputs_connected": [
         "first_frame"
       ],
-      "result_node": "CRUN_Next_Get_Video_Result",
+      "result_node": null,
       "preview_node": "SaveVideo"
     },
     {
       "family_id": "CRUN_Next_Family_Wan_Reference_to_Video",
+      "node_type": "CRUN_Next_Studio_Wan_Reference_to_Video",
       "family": "Wan",
       "task": "Reference to Video",
       "path": "Studio-Wan-Reference-to-Video.json",
@@ -954,11 +1019,12 @@
       "native_inputs_connected": [
         "reference_images"
       ],
-      "result_node": "CRUN_Next_Get_Video_Result",
+      "result_node": null,
       "preview_node": "SaveVideo"
     },
     {
       "family_id": "CRUN_Next_Family_Wan_Replace_Character",
+      "node_type": "CRUN_Next_Studio_Wan_Replace_Character",
       "family": "Wan",
       "task": "Replace Character",
       "path": "Studio-Wan-Replace-Character.json",
@@ -967,13 +1033,15 @@
       ],
       "default_model": "wan/2-2-animate-replace",
       "native_inputs_connected": [
-        "image"
+        "image",
+        "source_video"
       ],
-      "result_node": "CRUN_Next_Get_Video_Result",
+      "result_node": null,
       "preview_node": "SaveVideo"
     },
     {
       "family_id": "CRUN_Next_Family_Wan_Text_to_Video",
+      "node_type": "CRUN_Next_Studio_Wan_Text_to_Video",
       "family": "Wan",
       "task": "Text to Video",
       "path": "Studio-Wan-Text-to-Video.json",
@@ -986,11 +1054,12 @@
       ],
       "default_model": "wan/3-0-t2v",
       "native_inputs_connected": [],
-      "result_node": "CRUN_Next_Get_Video_Result",
+      "result_node": null,
       "preview_node": "SaveVideo"
     },
     {
       "family_id": "CRUN_Next_Family_Wan_Video_Editing",
+      "node_type": "CRUN_Next_Studio_Wan_Video_Editing",
       "family": "Wan",
       "task": "Video Editing",
       "path": "Studio-Wan-Video-Editing.json",
@@ -999,9 +1068,9 @@
       ],
       "default_model": "wan/2-7-video-edit",
       "native_inputs_connected": [
-        "image"
+        "source_video"
       ],
-      "result_node": "CRUN_Next_Get_Video_Result",
+      "result_node": null,
       "preview_node": "SaveVideo"
     }
   ]

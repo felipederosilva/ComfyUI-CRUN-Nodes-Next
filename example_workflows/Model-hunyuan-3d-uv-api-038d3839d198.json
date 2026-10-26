@@ -6,63 +6,17 @@
       "id": 1,
       "type": "CRUN_Next_hy_3d_uv_038d3839d198",
       "pos": [
-        570,
-        120
+        440,
+        130
       ],
       "size": [
-        500,
-        430
+        510,
+        700
       ],
       "flags": {},
-      "order": 0,
+      "order": 1,
       "mode": 0,
-      "inputs": [
-        {
-          "name": "crun_mode",
-          "type": "COMBO",
-          "widget": {
-            "name": "crun_mode"
-          },
-          "link": null,
-          "slot_index": 0
-        },
-        {
-          "name": "crun_allow_paid_generation",
-          "type": "BOOLEAN",
-          "widget": {
-            "name": "crun_allow_paid_generation"
-          },
-          "link": null,
-          "slot_index": 1
-        },
-        {
-          "name": "crun_max_credits",
-          "type": "FLOAT",
-          "widget": {
-            "name": "crun_max_credits"
-          },
-          "link": null,
-          "slot_index": 2
-        },
-        {
-          "name": "file_url",
-          "type": "STRING",
-          "widget": {
-            "name": "file_url"
-          },
-          "link": null,
-          "slot_index": 3
-        },
-        {
-          "name": "file_type",
-          "type": "COMBO",
-          "widget": {
-            "name": "file_type"
-          },
-          "link": null,
-          "slot_index": 4
-        }
-      ],
+      "inputs": [],
       "outputs": [
         {
           "name": "result_json",
@@ -99,20 +53,23 @@
       "id": 2,
       "type": "Note",
       "pos": [
-        50,
-        120
+        30,
+        60
       ],
       "size": [
-        460,
-        480
+        340,
+        620
       ],
-      "flags": {},
-      "order": 1,
+      "flags": {
+        "collapsed": true
+      },
+      "order": 3,
       "mode": 0,
       "properties": {},
       "widgets_values": [
-        "CRUN NEXT — SAFE START\n\nThis workflow defaults to PREPARE: no API request, upload or charge.\nEnter your API key only through Settings > CRUN Next, never in a workflow.\nConnect Load Image to native IMAGE references, or use Advanced URL fallbacks. Arrays/objects use JSON.\nPREPARE stays local. ESTIMATE uploads connected references and requests a price. GENERATE uploads references and submits a paid task.\nThe optional credit cap is under Advanced: 0 disables it; a positive cap is respected. Review the visible quote receipt.\nDo not share private media links when publishing this workflow.\n\nOption: Hunyuan 3D UV API\nModel: hy-3d-uv\nDocumentation: https://docs.crun.ai/models/hunyuan/hy-3d-uv\n"
+        "ADVANCED API PREPARATION ONLY — NO FINISHED MEDIA ADAPTER\n\nCRUN NEXT — NATIVE MEDIA WORKFLOW\n\nSTART: Action=prepare, optional cap=0, Take=0. No upload, provider request or generation occurs in Prepare.\nChoose local media in the connected Load nodes. Native inputs keep their documented roles; URL/JSON fallbacks remain Advanced.\nEstimate uploads references and displays the current quote. Generate submits once, waits and returns native media directly to Preview/Save.\nThe same settings and Take resume/reuse their existing task. Increase Take only to intentionally request a new paid generation.\nAfter a timeout, keep the task ID and resume it; do not create a replacement automatically.\nThe optional positive cap stays under Advanced; 0 disables it. Actual credits and remaining balance are separate from estimates.\nEnter your API key only in Settings > CRUN Next, never in this graph.\n\nOption: Hunyuan 3D UV API\nModel: hy-3d-uv\nDocumentation: https://docs.crun.ai/models/hunyuan/hy-3d-uv\n\nThis recipe is an Advanced API draft, not a complete creative integration. LLM/3D or a dedicated unsupported protocol may require raw structured inputs. Keep Prepare; a listed API is not proof of live execution.\n"
       ],
+      "title": "Workflow guide — expand for instructions",
       "color": "#263341",
       "bgcolor": "#17232d"
     }
@@ -124,14 +81,20 @@
     "ds": {
       "scale": 0.8,
       "offset": [
-        30,
-        30
+        20,
+        20
       ]
     },
     "crun_next": {
       "entry_id": "crun-295e65474a24ae27d54e",
       "model": "hy-3d-uv",
+      "output_kind": null,
       "default_mode": "prepare",
+      "native_inputs_connected": [],
+      "preview_node": null,
+      "result_node": null,
+      "node_type": "CRUN_Next_hy_3d_uv_038d3839d198",
+      "workflow_type": "advanced_api_preparation",
       "generation_tested": false
     }
   },

@@ -1,198 +1,70 @@
 {
-  "last_node_id": 2,
-  "last_link_id": 0,
+  "last_node_id": 3,
+  "last_link_id": 1,
   "nodes": [
     {
       "id": 1,
-      "type": "CRUN_Next_suno_music_extend_c7f22abe6dbe",
+      "type": "CRUN_Next_Media_suno_music_extend_c7f22abe6dbe",
       "pos": [
-        570,
-        120
+        440,
+        130
       ],
       "size": [
-        500,
-        1006
+        510,
+        700
       ],
       "flags": {},
-      "order": 0,
+      "order": 1,
       "mode": 0,
-      "inputs": [
-        {
-          "name": "crun_mode",
-          "type": "COMBO",
-          "widget": {
-            "name": "crun_mode"
-          },
-          "link": null,
-          "slot_index": 0
-        },
-        {
-          "name": "crun_allow_paid_generation",
-          "type": "BOOLEAN",
-          "widget": {
-            "name": "crun_allow_paid_generation"
-          },
-          "link": null,
-          "slot_index": 1
-        },
-        {
-          "name": "crun_max_credits",
-          "type": "FLOAT",
-          "widget": {
-            "name": "crun_max_credits"
-          },
-          "link": null,
-          "slot_index": 2
-        },
-        {
-          "name": "suno_id",
-          "type": "STRING",
-          "widget": {
-            "name": "suno_id"
-          },
-          "link": null,
-          "slot_index": 3
-        },
-        {
-          "name": "mode",
-          "type": "COMBO",
-          "widget": {
-            "name": "mode"
-          },
-          "link": null,
-          "slot_index": 4
-        },
-        {
-          "name": "continue_at",
-          "type": "INT",
-          "widget": {
-            "name": "continue_at"
-          },
-          "link": null,
-          "slot_index": 5
-        },
-        {
-          "name": "title",
-          "type": "STRING",
-          "widget": {
-            "name": "title"
-          },
-          "link": null,
-          "slot_index": 6
-        },
-        {
-          "name": "prompt",
-          "type": "STRING",
-          "widget": {
-            "name": "prompt"
-          },
-          "link": null,
-          "slot_index": 7
-        },
-        {
-          "name": "tags",
-          "type": "STRING",
-          "widget": {
-            "name": "tags"
-          },
-          "link": null,
-          "slot_index": 8
-        },
-        {
-          "name": "negative_tags",
-          "type": "STRING",
-          "widget": {
-            "name": "negative_tags"
-          },
-          "link": null,
-          "slot_index": 9
-        },
-        {
-          "name": "vocal_gender",
-          "type": "COMBO",
-          "widget": {
-            "name": "vocal_gender"
-          },
-          "link": null,
-          "slot_index": 10
-        },
-        {
-          "name": "style_weight",
-          "type": "FLOAT",
-          "widget": {
-            "name": "style_weight"
-          },
-          "link": null,
-          "slot_index": 11
-        },
-        {
-          "name": "audio_weight",
-          "type": "FLOAT",
-          "widget": {
-            "name": "audio_weight"
-          },
-          "link": null,
-          "slot_index": 12
-        },
-        {
-          "name": "weirdness_constraint",
-          "type": "FLOAT",
-          "widget": {
-            "name": "weirdness_constraint"
-          },
-          "link": null,
-          "slot_index": 13
-        },
-        {
-          "name": "variety",
-          "type": "INT",
-          "widget": {
-            "name": "variety"
-          },
-          "link": null,
-          "slot_index": 14
-        },
-        {
-          "name": "persona_id",
-          "type": "STRING",
-          "widget": {
-            "name": "persona_id"
-          },
-          "link": null,
-          "slot_index": 15
-        },
-        {
-          "name": "persona_model",
-          "type": "COMBO",
-          "widget": {
-            "name": "persona_model"
-          },
-          "link": null,
-          "slot_index": 16
-        }
-      ],
+      "inputs": [],
       "outputs": [
         {
-          "name": "result_json",
+          "name": "audio",
+          "type": "AUDIO",
+          "links": [
+            1
+          ],
+          "slot_index": 0
+        },
+        {
+          "name": "url",
           "type": "STRING",
           "links": null,
-          "slot_index": 0
+          "slot_index": 1
         },
         {
           "name": "task_id",
           "type": "STRING",
           "links": null,
-          "slot_index": 1
+          "slot_index": 2
         },
         {
-          "name": "credits",
+          "name": "estimated_credits",
           "type": "FLOAT",
           "links": null,
-          "slot_index": 2
+          "slot_index": 3
+        },
+        {
+          "name": "actual_credits",
+          "type": "FLOAT",
+          "links": null,
+          "slot_index": 4
+        },
+        {
+          "name": "credits_left",
+          "type": "FLOAT",
+          "links": null,
+          "slot_index": 5
+        },
+        {
+          "name": "result_json",
+          "type": "STRING",
+          "links": null,
+          "slot_index": 6
         }
       ],
       "properties": {
-        "Node name for S&R": "CRUN_Next_suno_music_extend_c7f22abe6dbe"
+        "Node name for S&R": "CRUN_Next_Media_suno_music_extend_c7f22abe6dbe"
       },
       "widgets_values": [
         "prepare",
@@ -211,47 +83,104 @@
         0.0,
         0,
         "",
-        "style_persona"
+        "style_persona",
+        0,
+        "",
+        0,
+        1200,
+        3.0
       ],
       "title": "CRUN • Crun Suno Music Extend API"
     },
     {
       "id": 2,
-      "type": "Note",
+      "type": "PreviewAudio",
       "pos": [
-        50,
-        120
+        1000,
+        130
       ],
       "size": [
-        460,
-        480
+        480,
+        380
       ],
       "flags": {},
-      "order": 1,
+      "order": 2,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "audio",
+          "type": "AUDIO",
+          "link": 1
+        }
+      ],
+      "outputs": [
+        {
+          "name": "audio",
+          "type": "AUDIO",
+          "links": null,
+          "slot_index": 0
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "PreviewAudio"
+      },
+      "widgets_values": []
+    },
+    {
+      "id": 3,
+      "type": "Note",
+      "pos": [
+        30,
+        60
+      ],
+      "size": [
+        340,
+        620
+      ],
+      "flags": {
+        "collapsed": true
+      },
+      "order": 3,
       "mode": 0,
       "properties": {},
       "widgets_values": [
-        "CRUN NEXT — SAFE START\n\nThis workflow defaults to PREPARE: no API request, upload or charge.\nEnter your API key only through Settings > CRUN Next, never in a workflow.\nConnect Load Image to native IMAGE references, or use Advanced URL fallbacks. Arrays/objects use JSON.\nPREPARE stays local. ESTIMATE uploads connected references and requests a price. GENERATE uploads references and submits a paid task.\nThe optional credit cap is under Advanced: 0 disables it; a positive cap is respected. Review the visible quote receipt.\nDo not share private media links when publishing this workflow.\n\nOption: Crun Suno Music Extend API\nModel: suno/music-extend\nDocumentation: https://docs.crun.ai/suno-api/extend-music\n"
+        "CRUN NEXT — NATIVE MEDIA WORKFLOW\n\nSTART: Action=prepare, optional cap=0, Take=0. No upload, provider request or generation occurs in Prepare.\nChoose local media in the connected Load nodes. Native inputs keep their documented roles; URL/JSON fallbacks remain Advanced.\nEstimate uploads references and displays the current quote. Generate submits once, waits and returns native media directly to Preview/Save.\nThe same settings and Take resume/reuse their existing task. Increase Take only to intentionally request a new paid generation.\nAfter a timeout, keep the task ID and resume it; do not create a replacement automatically.\nThe optional positive cap stays under Advanced; 0 disables it. Actual credits and remaining balance are separate from estimates.\nEnter your API key only in Settings > CRUN Next, never in this graph.\n\nOption: Crun Suno Music Extend API\nModel: suno/music-extend\nDocumentation: https://docs.crun.ai/suno-api/extend-music\n"
       ],
+      "title": "Workflow guide — expand for instructions",
       "color": "#263341",
       "bgcolor": "#17232d"
     }
   ],
-  "links": [],
+  "links": [
+    [
+      1,
+      1,
+      0,
+      2,
+      0,
+      "AUDIO"
+    ]
+  ],
   "groups": [],
   "config": {},
   "extra": {
     "ds": {
       "scale": 0.8,
       "offset": [
-        30,
-        30
+        20,
+        20
       ]
     },
     "crun_next": {
       "entry_id": "crun-a9a226cf22348419134b",
       "model": "suno/music-extend",
+      "output_kind": "audio",
       "default_mode": "prepare",
+      "native_inputs_connected": [],
+      "preview_node": "PreviewAudio",
+      "result_node": null,
+      "node_type": "CRUN_Next_Media_suno_music_extend_c7f22abe6dbe",
+      "workflow_type": "creative_native_media",
       "generation_tested": false
     }
   },

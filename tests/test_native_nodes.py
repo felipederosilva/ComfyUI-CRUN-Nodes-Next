@@ -95,6 +95,50 @@ class NativeNodeTests(unittest.TestCase):
             with self.assertRaisesRegex(ValueError, 'placeholders'):
                 execution.run_entry(model('bytedance/seedance2-0-i2v'), {'prompt': 'Test', 'img_urls': ['https://crun-next.invalid/local/draft.png']}, 'estimate')
 
+    def test_motion_video_port_prepares_real_role_without_upload(self):
+        class Video:
+            def get_dimensions(self): return 720, 720
+            def get_duration(self): return 5.0
+            def get_frame_rate(self): return 24
+            def save_to(self, path): Path(path).write_bytes(b'\x00\x00\x00\x18ftypisomfixture')
+        node = generated.make_node(model('kling/v3-motion-control'))
+        self.assertEqual(node.INPUT_TYPES()['optional']['motion_video'][0], 'VIDEO')
+        with patch.object(execution, 'CRUNClient', side_effect=AssertionError('Prepare remains offline')):
+            result = json.loads(node().execute(image=self.image, motion_video=Video(), character_orientation='image', mode='std')['result'][0])
+        self.assertEqual(result['errors'], [])
+        self.assertEqual(len(result['payload']['input']['video_urls']), 1)
+        video = next(info for info in result['native_media'] if info['kind'] == 'video')
+        self.assertEqual(video['duration'], 5)
+        self.assertTrue(video['placeholders'][0].endswith('.mp4'))
+
+    def test_seedance_numbered_audio_reference_is_native_and_gaps_fail_locally(self):
+        node = generated.make_node(model('bytedance/seedance2-5-r2v'))
+        optional = node.INPUT_TYPES()['optional']
+        self.assertEqual(optional['reference_video_1'][0], 'VIDEO')
+        self.assertEqual(optional['reference_video_10'][0], 'VIDEO')
+        self.assertEqual(optional['reference_audio_1'][0], 'AUDIO')
+        audio = {'sample_rate': 16000, 'waveform': np.zeros((1, 1, 16000), dtype=np.float32)}
+        with patch.object(execution, 'CRUNClient', side_effect=AssertionError('No request')):
+            result = json.loads(node().execute(prompt='Synthetic audio-led scene', reference_audio_1=audio)['result'][0])
+            self.assertEqual(result['errors'], [])
+            self.assertTrue(result['payload']['input']['reference_audios'][0].endswith('.wav'))
+            with self.assertRaisesRegex(ValueError, 'gap'):
+                node().execute(prompt='Synthetic', reference_audio_2=audio)
+
+    def test_native_clip_upload_then_estimate_does_not_create_a_task(self):
+        class Video:
+            def get_dimensions(self): return 720, 720
+            def get_duration(self): return 5.0
+            def get_frame_rate(self): return 24
+            def save_to(self, path): Path(path).write_bytes(b'\x00\x00\x00\x18ftypisomfixture')
+        node = generated.make_node(model('kling/v3-motion-control'))
+        with patch.object(execution, 'CRUNClient') as client, patch.object(media, 'upload_pngs', return_value=['https://cdn.example.com/character.png']), patch.object(media, 'upload_media_bytes', return_value=['https://cdn.example.com/motion.mp4']) as upload:
+            client.return_value.estimate_credits.return_value = {'credits': 2, 'estimated': True}
+            result = json.loads(node().execute(image=self.image, motion_video=Video(), character_orientation='image', mode='std', crun_mode='estimate')['result'][0])
+        self.assertEqual(upload.call_args.kwargs['mime_type'], 'video/mp4')
+        self.assertEqual(result['payload']['input']['video_urls'], ['https://cdn.example.com/motion.mp4'])
+        client.return_value.create_task.assert_not_called()
+
 
 if __name__ == '__main__':
     unittest.main()

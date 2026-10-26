@@ -47,11 +47,26 @@ class CRUNGetVideoResult(CRUNGetImageResult):
     KIND = "video"
 
 
+class CRUNGetAudioResult(CRUNGetImageResult):
+    RETURN_TYPES = ("AUDIO", "STRING", "FLOAT", "STRING")
+    RETURN_NAMES = ("audio", "url", "actual_credits", "task_id")
+    DESCRIPTION = "Recover an existing CRUN speech/music task as native AUDIO for Preview/Save Audio. Reuses verified local media when available; otherwise retrieves this same task ID. Never generates or uploads."
+    KIND = "audio"
+
+    @classmethod
+    def INPUT_TYPES(cls):
+        definition = super().INPUT_TYPES()
+        definition["required"]["task_id"] = ("STRING", {"default": "", "tooltip": "Paste an existing task ID or connect one. Completed local media can be reused without contacting CRUN."})
+        return definition
+
+
 NODE_CLASS_MAPPINGS = {
     "CRUN_Next_Get_Image_Result": CRUNGetImageResult,
     "CRUN_Next_Get_Video_Result": CRUNGetVideoResult,
+    "CRUN_Next_Get_Audio_Result": CRUNGetAudioResult,
 }
 NODE_DISPLAY_NAME_MAPPINGS = {
     "CRUN_Next_Get_Image_Result": "CRUN • Get Image Result",
     "CRUN_Next_Get_Video_Result": "CRUN • Get Video Result",
+    "CRUN_Next_Get_Audio_Result": "CRUN • Get Audio Result",
 }

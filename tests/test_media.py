@@ -1,5 +1,7 @@
 import io
+from pathlib import Path
 import unittest
+import wave
 from unittest.mock import patch
 
 import numpy as np
@@ -111,6 +113,49 @@ class MediaTests(unittest.TestCase):
         self.assertEqual(media.describe_image_batch(image)["width"], 3)
         mask = torch.ones((1, 2, 3), dtype=torch.float32)
         self.assertEqual(media.mask_batch_to_images(mask).shape, (1, 2, 3, 1))
+
+    def test_audio_wav_preserves_channels_samples_and_rejects_bad_batches(self):
+        audio = {"sample_rate": 16000, "waveform": np.asarray([[[0, .5, -.5], [1, 0, -1]]], dtype=np.float32)}
+        with patch("requests.sessions.Session.request", side_effect=AssertionError("No network")):
+            data, info = media.audio_to_upload(audio)
+        with wave.open(io.BytesIO(data)) as wav:
+            self.assertEqual((wav.getnchannels(), wav.getframerate(), wav.getnframes()), (2, 16000, 3))
+            samples = np.frombuffer(wav.readframes(3), dtype="<i2").reshape(3, 2)
+            self.assertEqual(samples[0].tolist(), [0, 32767])
+            self.assertEqual(samples[2].tolist(), [-16384, -32767])
+        self.assertEqual(info["duration"], 3 / 16000)
+        for bad in (np.zeros((2, 1, 10), dtype=np.float32), np.full((1, 1, 10), np.nan), np.full((1, 1, 10), 2.0)):
+            with self.assertRaises(ValueError):
+                media.audio_to_upload({"sample_rate": 16000, "waveform": bad})
+
+    def test_native_video_materializes_locally_and_checks_metadata(self):
+        class Video:
+            def get_dimensions(self): return 640, 480
+            def get_duration(self): return 5.0
+            def get_frame_rate(self): return 24
+            def save_to(self, path): Path(path).write_bytes(b"\x00\x00\x00\x18ftypisom" + b"fixture-mp4")
+        with patch("requests.sessions.Session.request", side_effect=AssertionError("No network")):
+            data, info = media.video_to_upload(Video())
+        self.assertEqual((info["width"], info["height"], info["duration"], info["frame_rate"]), (640, 480, 5.0, 24))
+        self.assertEqual(data[4:8], b"ftyp")
+        class Bad(Video):
+            def get_duration(self): return float("inf")
+        with self.assertRaises(ValueError): media.video_to_upload(Bad())
+        with self.assertRaises(ValueError): media.video_to_upload("arbitrary-local-file.mp4")
+
+    def test_mp4_wav_upload_cache_preserves_mime_and_credential_scope(self):
+        data = b"\x00\x00\x00\x18ftypisom" + b"fixture-mp4"
+        client = FakeClient()
+        first = media.upload_media_bytes(client, [data], mime_type="video/mp4", extension=".mp4", allow_upload=True)
+        again = media.upload_media_bytes(client, [data], mime_type="video/mp4", extension=".mp4", allow_upload=True)
+        self.assertEqual(first, again)
+        self.assertEqual(len(client.calls), 1)
+        self.assertEqual(client.calls[0][1], {"mime_type": "video/mp4", "extension": ".mp4"})
+        with self.assertRaises(ValueError):
+            media.upload_media_bytes(client, [data], mime_type="video/mp4", extension=".mp4")
+        with self.assertRaises(ValueError):
+            media.upload_media_bytes(client, [data, b"not-mp4"], mime_type="video/mp4", extension=".mp4", allow_upload=True)
+        self.assertEqual(len(client.calls), 1)
 
 
 if __name__ == "__main__":

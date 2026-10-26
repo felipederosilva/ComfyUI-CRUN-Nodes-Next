@@ -6,99 +6,17 @@
       "id": 1,
       "type": "CRUN_Next_tripo_3d_animation_d5abcdbbc73b",
       "pos": [
-        570,
-        120
+        440,
+        130
       ],
       "size": [
-        500,
-        622
+        510,
+        700
       ],
       "flags": {},
-      "order": 0,
+      "order": 1,
       "mode": 0,
-      "inputs": [
-        {
-          "name": "crun_mode",
-          "type": "COMBO",
-          "widget": {
-            "name": "crun_mode"
-          },
-          "link": null,
-          "slot_index": 0
-        },
-        {
-          "name": "crun_allow_paid_generation",
-          "type": "BOOLEAN",
-          "widget": {
-            "name": "crun_allow_paid_generation"
-          },
-          "link": null,
-          "slot_index": 1
-        },
-        {
-          "name": "crun_max_credits",
-          "type": "FLOAT",
-          "widget": {
-            "name": "crun_max_credits"
-          },
-          "link": null,
-          "slot_index": 2
-        },
-        {
-          "name": "input",
-          "type": "STRING",
-          "widget": {
-            "name": "input"
-          },
-          "link": null,
-          "slot_index": 3
-        },
-        {
-          "name": "animation",
-          "type": "STRING",
-          "widget": {
-            "name": "animation"
-          },
-          "link": null,
-          "slot_index": 4
-        },
-        {
-          "name": "animations",
-          "type": "STRING",
-          "widget": {
-            "name": "animations"
-          },
-          "link": null,
-          "slot_index": 5
-        },
-        {
-          "name": "out_format",
-          "type": "COMBO",
-          "widget": {
-            "name": "out_format"
-          },
-          "link": null,
-          "slot_index": 6
-        },
-        {
-          "name": "bake_animation",
-          "type": "BOOLEAN",
-          "widget": {
-            "name": "bake_animation"
-          },
-          "link": null,
-          "slot_index": 7
-        },
-        {
-          "name": "animate_in_place",
-          "type": "BOOLEAN",
-          "widget": {
-            "name": "animate_in_place"
-          },
-          "link": null,
-          "slot_index": 8
-        }
-      ],
+      "inputs": [],
       "outputs": [
         {
           "name": "result_json",
@@ -139,20 +57,23 @@
       "id": 2,
       "type": "Note",
       "pos": [
-        50,
-        120
+        30,
+        60
       ],
       "size": [
-        460,
-        480
+        340,
+        620
       ],
-      "flags": {},
-      "order": 1,
+      "flags": {
+        "collapsed": true
+      },
+      "order": 3,
       "mode": 0,
       "properties": {},
       "widgets_values": [
-        "CRUN NEXT — SAFE START\n\nThis workflow defaults to PREPARE: no API request, upload or charge.\nEnter your API key only through Settings > CRUN Next, never in a workflow.\nConnect Load Image to native IMAGE references, or use Advanced URL fallbacks. Arrays/objects use JSON.\nPREPARE stays local. ESTIMATE uploads connected references and requests a price. GENERATE uploads references and submits a paid task.\nThe optional credit cap is under Advanced: 0 disables it; a positive cap is respected. Review the visible quote receipt.\nDo not share private media links when publishing this workflow.\n\nOption: Tripo 3D Animation Retargeting API\nModel: tripo-3d-animation\nDocumentation: https://docs.crun.ai/models/tripo/tripo-3d-animation\n"
+        "ADVANCED API PREPARATION ONLY — NO FINISHED MEDIA ADAPTER\n\nCRUN NEXT — NATIVE MEDIA WORKFLOW\n\nSTART: Action=prepare, optional cap=0, Take=0. No upload, provider request or generation occurs in Prepare.\nChoose local media in the connected Load nodes. Native inputs keep their documented roles; URL/JSON fallbacks remain Advanced.\nEstimate uploads references and displays the current quote. Generate submits once, waits and returns native media directly to Preview/Save.\nThe same settings and Take resume/reuse their existing task. Increase Take only to intentionally request a new paid generation.\nAfter a timeout, keep the task ID and resume it; do not create a replacement automatically.\nThe optional positive cap stays under Advanced; 0 disables it. Actual credits and remaining balance are separate from estimates.\nEnter your API key only in Settings > CRUN Next, never in this graph.\n\nOption: Tripo 3D Animation Retargeting API\nModel: tripo-3d-animation\nDocumentation: https://docs.crun.ai/models/tripo/tripo-3d-animation\n\nThis recipe is an Advanced API draft, not a complete creative integration. LLM/3D or a dedicated unsupported protocol may require raw structured inputs. Keep Prepare; a listed API is not proof of live execution.\n"
       ],
+      "title": "Workflow guide — expand for instructions",
       "color": "#263341",
       "bgcolor": "#17232d"
     }
@@ -164,14 +85,20 @@
     "ds": {
       "scale": 0.8,
       "offset": [
-        30,
-        30
+        20,
+        20
       ]
     },
     "crun_next": {
       "entry_id": "crun-a7e2b34f87cae5cf5693",
       "model": "tripo-3d-animation",
+      "output_kind": null,
       "default_mode": "prepare",
+      "native_inputs_connected": [],
+      "preview_node": null,
+      "result_node": null,
+      "node_type": "CRUN_Next_tripo_3d_animation_d5abcdbbc73b",
+      "workflow_type": "advanced_api_preparation",
       "generation_tested": false
     }
   },

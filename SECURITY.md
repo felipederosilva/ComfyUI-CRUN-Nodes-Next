@@ -1,120 +1,152 @@
-# Security and scope
+# Security and execution scope — 0.4.0
 
-CRUN Next 0.3.2 targets a trusted, single-user, **loopback ComfyUI** installation.
-It is not a hardened multi-user service. Do not expose the server publicly
-without a separate access-control design.
+CRUN Next targets a trusted, single-user **loopback ComfyUI** installation. It is
+not a hardened public or multi-user service. A remote/shared deployment needs a
+separate authentication, authorization and spending design.
 
-## Credential boundary
+## Credentials and local data
 
-The local bridge checks peer/Host loopback addresses, same-origin requests and a
-process-local nonce for actions. Keys enter a password control and are sent to
-the local backend. They are not returned by status routes or saved as graph
-widgets, workflow fields, browser localStorage or persistent Comfy setting values.
+The local bridge checks loopback peer/Host addresses, same-origin requests and a
+process-local nonce for actions. Key entry uses a password control and sends the
+key to the local backend. Status routes do not return it; workflows, browser
+localStorage and persisted Comfy settings do not store it.
 
-Windows storage uses DPAPI for the current user with no plaintext fallback.
-Other platforms use restrictive owner permissions but **not encryption**.
-`CRUN_API_KEY` overrides saved storage; deleting a saved key does not unset it.
-Credential, nonsecret connection receipt, catalog cache and task journal are
-separate files outside the extension. Status receipts are historical and bound
-to a key fingerprint. Do not place configuration in Git or share it.
+Windows keys use current-user DPAPI, with no plaintext fallback. Other platforms
+use restrictive owner permissions, not encryption. `CRUN_API_KEY` overrides saved
+storage; removing the saved key does not unset that environment variable. Another
+custom node or compromised same-user process can still access keys and submit
+requests. DPAPI protects at rest, not against a compromised running user session.
 
-DPAPI protects data at rest, not against same-user malware or compromised custom
-nodes/backends. These can still access secrets or submit requests. Use a dedicated
-CRUN key and provider-side usage limits where available.
+Configuration, safe connection receipts, catalog caches, task journals, creative
+job mappings and completed-asset indexes are separate files outside the package.
+Do not commit or publish that directory. Generated media and diagnostic outputs
+may contain private material even though journals omit prompts and reference URLs.
 
-## Requests, catalogs and previews
+## Requests, discovery and previews
 
-Credentialed requests use fixed HTTPS CRUN endpoints without redirects or
-automatic retries. Public documentation fetches use fixed official docs hosts
-without a key, with bounded downloads/concurrency. Authenticated discovery uses
-read-only GETs. Catalog loading and node registration are local-only; opening a
-workflow does not submit a job.
+Credentialed calls use fixed HTTPS CRUN endpoints without redirects or automatic
+retries. Documentation refresh uses official docs hosts without a key and bounded
+sizes/concurrency. Authenticated inventory/Effects discovery uses read-only GETs.
+Node registration, opening a workflow and selecting a model do not submit tasks.
+Catalog presence is neither authorization nor proof of entitlement or execution.
 
-Catalog labels/schemas are untrusted metadata. Labels render as text, not
-executable HTML. Catalog presence is neither authorization nor proof of access
-or tested execution. Exact model IDs come from schemas/documented discovery.
+Catalog strings are untrusted metadata and render as text. Optional remote
+previews load only on user action and reveal the browser IP to the media host.
+No provider preview bundle or proprietary Effects implementation is included.
+Native media and advanced URL fields are alternative sources, not hidden upload
+permissions. Review private URLs and signed links before sharing a workflow.
 
-Optional HTTPS previews load on user action, without a backend proxy, and expose
-the browser's IP to the media host. No external preview files or proprietary
-Effects implementation is bundled. Remote generation references are public
-HTTPS URLs; native files upload when Estimate or Generate is run. URL checks reject
-embedded credentials and obvious local addresses but do not resolve DNS or
-guarantee provider-side network isolation. Do not publish workflows containing
-private media links or signed tokens.
+## Native reference boundary
 
-## Native media uploads and retrieval
+Prepare validates and materializes IMAGE/MASK/VIDEO/AUDIO locally. Connecting a
+port or changing a model does not upload media. Estimate uploads required
+references to quote a task. Generate uploads required references before its
+quote/cap/balance checks and one new submission. Therefore an upload can precede
+a later rejection for insufficient balance or an optional cap.
 
-Connecting IMAGE/MASK media does not upload it. Prepare inspects/encodes locally
-and produces local placeholders and reference metadata. Selecting Estimate and
-running authorizes uploading connected references to obtain a quote; selecting
-Generate and running authorizes the uploads and one paid task. This sends
-the connected image/mask content to CRUN's documented upload endpoint. The image
-is encoded as PNG with count, shape, finite-value, pixel and byte bounds checked
-locally before upload. Exact model schemas still govern supported roles/counts.
+Recognized image fields encode to bounded PNG; masks retain their documented
+white-as-affected input semantics. Native VIDEO materializes locally as MP4 and
+AUDIO as PCM16 WAV. Generic size/shape/value checks and the implemented
+model-specific reference guards run before upload. Numbered references preserve
+order and reject gaps. These checks do not establish every prose-only provider
+limit, support nested reference structures, or convert a GIF-specific contract
+into an MP4 contract.
 
-Estimate does not authorize a paid task. Estimation with native media needs
-temporary uploaded URLs, so an upload can occur before a quote/cap or balance
-check prevents generation. Prepare never uploads. Model changes reset the action
-to Prepare while retaining the optional credit cap. Legacy checkbox arguments
-remain hidden for workflow compatibility; they are not additional action gates.
+Uploads use a fixed authenticated `GET /api/v1/client/files/upload-url` followed
+by a separate **credential-free PUT** to the returned storage URL. That storage
+session does not attach CRUN headers or environment/netrc credentials and follows
+no redirects or automatic retries. MIME/extension/signature and bounded-byte
+checks cover PNG, MP4 and WAV. URL validation rejects embedded credentials and
+obvious local destinations; upload-destination checks are not a complete DNS or
+provider-side network isolation guarantee.
 
-Upload receipts are cached only in memory for 30 minutes, scoped by credential
-and content digest. CRUN documents a one-hour URL lifetime. No reusable upload URL
-cache is written to the public package; a later Estimate/Generate after restart
-may upload the references again. A workflow's user fields or outputs may contain private URLs
-and must be reviewed before sharing. Temporary URLs are not durable asset storage.
+Upload receipts are cached in memory for 30 minutes, scoped to content, media
+type and configured credential. CRUN upload URLs are temporary. The cache is not
+durable storage and is not written into the public package. A new session may
+upload again when the user intentionally runs Estimate/Generate.
 
-Image/Video Result nodes poll only an existing task ID and cannot create jobs.
-The selected result is downloaded over HTTPS with byte/time limits, redirect
-following disabled and no CRUN account headers or environment credentials.
-Obvious private addresses and resolved private destinations are rejected;
-these checks are not a guarantee against every DNS/network attack. Downloads
-persist under `output/CRUNResults`; treat private generated media as local data
-that should not be committed or shared unintentionally. Image decoding is bounded.
+## Generation intent and optional credit cap
 
-Native VIDEO/AUDIO input upload and advanced nested media adapters remain
-unimplemented. Use only media and likenesses you are authorized to process.
+Creative recipes default to Prepare. Estimate creates no generation task.
+Generate validates, obtains a quote, enforces any positive `crun_max_credits` and
+checks balance before a new submission. Zero disables that optional cap;
+positive saved limits are retained across model changes. No extra upload/paid
+checkbox is required by the simple action flow. The cap checks an **estimate**,
+not a provider-enforced ceiling on the final charge.
 
-## Paid submission boundary
+Ordinary creative generators are graph transformations with native media outputs
+and `OUTPUT_NODE=False`. They run through the selected connected output graph.
+Legacy API-task nodes retain their IDs, output slots and prior output-node
+behavior under Advanced; a legacy node left in Generate can execute again when
+Comfy queues uncached work. Those legacy contracts do not gain Take-based reuse
+merely by upgrading the package.
 
-Generated starters default to Prepare. Prepare makes no provider request.
-Estimate uploads required connected media and calls the quote endpoint without
-creating a job. Only running a supported operation in Generate can reach
-CreateTask after input, quote, optional-cap and balance checks.
+## Creative Take records and unknown outcomes
 
-`crun_max_credits` is an optional estimated-credit cap under Advanced. Zero
-disables this cap; a positive existing cap remains in force and is not cleared
-when changing models. The update does not remove or raise positive saved limits.
+New creative nodes identify a prepared request plus Take through an HMAC keyed
+by the configured API credential. This permits local matching without persisting
+the raw request, prompt, reference URL or API key. It is credential-scoped, not a
+provider-wide account identity: changing key/configuration or removing history
+must not be treated as retaining automatic deduplication.
 
-The gate validates documented inputs, obtains an estimate, checks any active
-cap and the balance, and submits once. **A cap checks the estimate, not a provider-enforced final
-spending cap.** Schema validation cannot cover every prose-only requirement.
-No real provider upload, estimate, paid generation or generated-media download
-has been tested for 0.3. LLM/dedicated protocols are prepare-only.
+A local cross-process submission lock coordinates processes sharing the config
+directory. Before CreateTask, a submitting marker is written; an accepted task ID
+is recorded before waiting/downloading. Repeating the same recorded request/Take
+retrieves that task. Changing model, settings, references or Take can define a
+new paid request. **Increase Take intentionally**, and clear an explicit resume
+ID when intending a new generation.
 
-An output node set to Generate can submit again when Comfy executes it after
-edits or queuing. Select Prepare before editing/sharing graphs. Journal markers and accepted IDs
-omit keys, prompts and reference URLs. Unknown outcomes require inspecting CRUN
-Logs and recovering the existing ID before intentionally submitting another job.
-There is no automatic resubmission or paid-job replacement. Result retrieval may
-poll and download the same accepted ID; timeout/interruption preserves that ID
-for explicit retrieval retry. The journal is a recovery aid, not a provider
-idempotency guarantee.
+Creative mappings are not automatically evicted: they also serve as paid-request
+tombstones. Unreadable/full history blocks generation instead of silently
+resetting mappings. Preserve history/task IDs before manual maintenance. These
+controls mitigate repeats but are not a provider-enforced exactly-once protocol.
+Do not restore an empty/stale history and assume old Takes remain protected.
 
-Credit receipt widgets display only returned metadata; they do not upload,
-estimate or submit. They do not persist payloads, prompts, reference URLs or
-credentials into their workflow state. The last quote is not a final charge and
-the balance-at-check is not continuously live. A cap/balance rejection preserves
-the quote for review without fabricating a task ID or a zero-cost success.
+An unknown submission outcome never triggers an automatic replacement. Inspect
+CRUN Logs, identify the accepted task if present, then use **Resume existing
+task** under Advanced. In Estimate/Generate, resume bypasses old source media,
+quote and submission; Prepare remains offline. Timeouts, failed downloads and
+local cancellation keep the task ID; they do not promise remote cancellation,
+refund or a free retry.
 
-## Installation and reporting
+## Completion, local reuse and credits
 
-The optional first-install helper copies an allowlist, verifies hashes and
-refuses existing destinations. It does not start Comfy or modify KIE Next.
-Packaging excludes local credentials, caches and journals. Keep backups outside
-custom_nodes to avoid importing multiple copies.
+Completion polls only the existing ID, bounds waits/downloads, omits provider
+credentials from media GETs and follows no redirects. Resolved private download
+destinations are rejected; DNS/network checks are a mitigation, not a complete
+network security boundary. Persisted media under `output/CRUNResults` is private
+local data and should not be committed or shared accidentally.
 
-Revoke a suspected leaked key in CRUN first. Report with a sanitized issue or
-GitHub private vulnerability reporting if enabled. Never attach credential
-files, raw headers, private URLs or unredacted Comfy configs. Provider errors
-are sanitized; avoid publishing raw request/response dumps.
+Completed-asset lookup is credential-scoped and validates local filename,
+location, byte count and content digest before reuse. A missing/corrupt/evicted
+cache entry can query/download the **same task** again; it never creates a new
+one. The bounded asset index is separate from the non-evicting creative job
+history. Stored indexes omit signed media URLs. A local-only reuse can return an
+empty URL while its native media output remains usable.
+
+Image decoding bounds pixels and exposes the Comfy transparency mask as one
+minus alpha. AUDIO decoding bounds output samples/memory. VIDEO requires a
+current Comfy runtime. Do not interpret these adapters as evidence that every
+upstream model returns a compatible file or every requested role works live.
+
+Receipts distinguish the estimated quote, provider-reported actual task cost and
+a separate timestamped account-balance check. Unknown values remain unavailable;
+shared balance deltas do not become a per-task cost. A local completed asset may
+be reused without a download while the creative node refreshes account balance
+read-only.
+
+## Packaging and verification
+
+The runtime package uses an explicit allowlist, archive CRC and SHA256 checks.
+Credentials, journals, private asset indexes, user outputs, temporary URLs and Git
+history are excluded. Installation backups must stay outside `custom_nodes`.
+KIE Next remains a separate installation and provider configuration.
+
+One expressly approved Nano Banana Pro 1K round trip completed for a confirmed
+8-credit task charge. It required no user-media upload. Native image decoding,
+local reuse and actual Comfy Save Image passed. Synthetic VIDEO/AUDIO executor
+checks are separate from live video/audio generation. Interactive browser checks
+were stopped by the Computer Use safety tool; [VALIDATION.md](VALIDATION.md)
+records this limit and the final automated evidence. Unsupported
+LLM/3D protocols and unknown Effect output types remain Advanced rather than
+claiming complete typed execution. Comfy Registry publication is not implied.
