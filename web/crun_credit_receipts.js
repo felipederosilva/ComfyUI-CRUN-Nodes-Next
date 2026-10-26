@@ -136,22 +136,33 @@ export function formatCreditReceipt(receipt) {
     return lines.join("\n");
 }
 
+// Keep Comfy's overlay geometry tied to the node, including after resize and zoom.
+function syncPanelWidth(node, widget, element) {
+    const width = Number(node.size?.[0]);
+    if (!widget || !Number.isFinite(width) || width <= 0) return;
+    if (widget.width !== width) widget.width = width;
+    element.style.maxWidth = `${Math.max(0, width - 20)}px`;
+}
+
 export function attachCreditReceipt(node) {
     if (receipts.has(node)) return receipts.get(node);
     if (typeof document === "undefined" || typeof node.addDOMWidget !== "function") return null;
     const element = document.createElement("div");
-    element.style.cssText = "overflow:auto;box-sizing:border-box;width:100%;height:100%;padding:9px 11px;border:1px solid #3b747d;border-radius:7px;background:#10252d;color:#d4eeee;white-space:pre-wrap;font:12px/1.45 sans-serif";
+    element.style.cssText = "overflow:auto;box-sizing:border-box;width:100%;height:100%;overflow-wrap:anywhere;padding:9px 11px;border:1px solid #3b747d;border-radius:7px;background:#10252d;color:#d4eeee;white-space:pre-wrap;font:12px/1.45 sans-serif";
     element.setAttribute("role", "status");
     element.setAttribute("aria-label", "CRUN credit receipt");
     element.setAttribute("aria-live", "polite");
     element.textContent = formatCreditReceipt(null);
     const widget = node.addDOMWidget(WIDGET_NAME, "info", element, {
         serialize: false,
+        onDraw(widget) { syncPanelWidth(node, widget, element); },
+        afterResize(resizedNode) { syncPanelWidth(resizedNode, this, element); },
         hideOnZoom: false,
-        getMinHeight: () => 190,
-        getMaxHeight: () => 340,
+        getMinHeight: () => 105,
+        getMaxHeight: () => 250,
     });
     if (widget) {
+        syncPanelWidth(node, widget, element);
         widget.serialize = false;
         widget.options ||= {};
         widget.options.serialize = false;

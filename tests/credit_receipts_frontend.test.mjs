@@ -196,3 +196,21 @@ test("failed existing tasks show recovery advice without raw provider exceptions
     assert.match(text, /do not generate again/);
     assert.doesNotMatch(text + JSON.stringify(receipt), /PRIVATE|fixture_task|Media ready/);
 });
+
+
+test("credit panel follows node width when drawn and resized", () => {
+    const node = makeNode();
+    node.size = [440, 600];
+    const { widget, element } = ui.attachCreditReceipt(node);
+    assert.equal(widget.width, 440);
+    assert.equal(element.style.maxWidth, "420px");
+    node.size[0] = 275;
+    widget.options.afterResize.call(widget, node);
+    assert.equal(widget.width, 275);
+    assert.equal(element.style.maxWidth, "255px");
+    node.size[0] = 700;
+    widget.options.onDraw(widget);
+    assert.equal(widget.width, 700);
+    assert.equal(element.style.maxWidth, "680px");
+    assert.ok(widget.options.getMinHeight() < 190);
+});

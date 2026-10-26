@@ -160,17 +160,25 @@ function drawHelp(node, state, text, warning = false) {
     }
 }
 
+// Keep Comfy's overlay geometry tied to the node, including after resize and zoom.
+function syncPanelWidth(node, widget, element) {
+    const width = Number(node.size?.[0]);
+    if (!widget || !Number.isFinite(width) || width <= 0) return;
+    if (widget.width !== width) widget.width = width;
+    element.style.maxWidth = `${Math.max(0, width - 20)}px`;
+}
+
 function makeHelp(node, state) {
     if (typeof document === "undefined" || typeof node.addDOMWidget !== "function" || state.help) return;
     const element = document.createElement("div");
-    element.style.cssText = "overflow:auto;box-sizing:border-box;width:100%;height:100%;padding:9px 11px;border-radius:7px;background:#10252d;color:#cce6e7;font:12px/1.45 sans-serif";
+    element.style.cssText = "display:flex;flex-direction:column;overflow:hidden;box-sizing:border-box;width:100%;height:100%;overflow-wrap:anywhere;padding:9px 11px;border-radius:7px;background:#10252d;color:#cce6e7;font:12px/1.45 sans-serif";
     const help = document.createElement("div");
-    help.style.cssText = "white-space:pre-wrap;border-left:2px solid #3b747d;padding-left:8px";
+    help.style.cssText = "white-space:pre-wrap;overflow:auto;min-height:0;flex:1;border-left:2px solid #3b747d;padding-left:8px";
     help.setAttribute("role", "status");
     const advanced = document.createElement("button");
     advanced.type = "button";
     advanced.textContent = "Show advanced controls";
-    advanced.style.cssText = "margin-top:7px;padding:3px 7px;border:1px solid #3b747d;border-radius:4px;background:#17343c;color:#cce6e7;font:11px sans-serif;cursor:pointer";
+    advanced.style.cssText = "flex-shrink:0;align-self:flex-start;margin-top:7px;padding:3px 7px;border:1px solid #3b747d;border-radius:4px;background:#17343c;color:#cce6e7;font:11px sans-serif;cursor:pointer";
     advanced.setAttribute("aria-expanded", "false");
     advanced.addEventListener("click", event => {
         event.preventDefault();
@@ -180,11 +188,14 @@ function makeHelp(node, state) {
     element.append(help, advanced);
     const widget = node.addDOMWidget("crun_model_help", "info", element, {
         serialize: false,
+        onDraw(widget) { syncPanelWidth(node, widget, element); },
+        afterResize(resizedNode) { syncPanelWidth(resizedNode, this, element); },
         getMinHeight: () => 112,
         getMaxHeight: () => 150,
         hideOnZoom: true,
     });
     if (widget) {
+        syncPanelWidth(node, widget, element);
         widget.serialize = false;
         widget.options ||= {};
         widget.options.serialize = false;

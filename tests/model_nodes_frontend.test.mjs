@@ -377,3 +377,27 @@ test("every bundled family profile can switch without stale choices or broken re
     }
     assert.ok(profilesChecked > 100);
 });
+
+
+test("model help panel follows node width when resized and drawn", () => {
+    const originalDocument = globalThis.document;
+    globalThis.document = { createElement() { return { style: {}, setAttribute() {}, addEventListener() {}, append() {} }; } };
+    try {
+        const node = makeNode();
+        node.addDOMWidget = function(name, type, element, options) {
+            const panel = { name, type, element, options };
+            this.widgets.push(panel);
+            return panel;
+        };
+        ui.attachFamilyControls(node, definition());
+        const panel = node.widgets.find(item => item.name === "crun_model_help");
+        node.size[0] = 300;
+        panel.options.afterResize.call(panel, node);
+        assert.equal(panel.width, 300);
+        assert.equal(panel.element.style.maxWidth, "280px");
+        node.size[0] = 640;
+        panel.options.onDraw(panel);
+        assert.equal(panel.width, 640);
+        assert.equal(panel.element.style.maxWidth, "620px");
+    } finally { globalThis.document = originalDocument; }
+});
