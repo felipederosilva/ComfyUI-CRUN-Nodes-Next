@@ -1,4 +1,4 @@
-# Security and execution scope — 0.4.0
+# Security and execution scope — 0.4.2
 
 CRUN Next targets a trusted, single-user **loopback ComfyUI** installation. It is
 not a hardened public or multi-user service. A remote/shared deployment needs a
@@ -142,11 +142,20 @@ Credentials, journals, private asset indexes, user outputs, temporary URLs and G
 history are excluded. Installation backups must stay outside `custom_nodes`.
 KIE Next remains a separate installation and provider configuration.
 
-One expressly approved Nano Banana Pro 1K round trip completed for a confirmed
-8-credit task charge. It required no user-media upload. Native image decoding,
-local reuse and actual Comfy Save Image passed. Synthetic VIDEO/AUDIO executor
-checks are separate from live video/audio generation. Interactive browser checks
-were stopped by the Computer Use safety tool; [VALIDATION.md](VALIDATION.md)
-records this limit and the final automated evidence. Unsupported
-LLM/3D protocols and unknown Effect output types remain Advanced rather than
-claiming complete typed execution. Comfy Registry publication is not implied.
+An expressly approved Nano Banana Pro 1K round trip completed for a confirmed
+8-credit task charge, with native image decoding, local reuse and Comfy Save Image.
+A second approved test on 27 October 2026 used the installed CRUN Studio MiniMax
+H3 Image to Video node to upload one first-frame image, request five seconds at
+480P and standard speed, and return native VIDEO to Save Video. The saved H.264
+MP4 decoded as 480 × 480, 24 fps and 124 frames; its provider-reported task charge
+was 12.5 CRUN credits. These are scoped live tests, not full-catalog validation.
+Live audio remains unverified.
+
+The 0.4.1 panel patch passed resizing/Advanced-control checks in a separate Comfy
+canvas. The original overflow was not reproduced in that session, so original-
+workflow confirmation remains separate. [VALIDATION.md](VALIDATION.md) records
+execution dates, limits and retained automated evidence. Unsupported LLM/3D
+protocols and unknown Effect output types remain Advanced rather than claiming
+complete typed execution. Registry publication is checked separately from local
+validation; public evidence excludes account balances, task IDs, signed URLs,
+private journals and user-media references.

@@ -1,10 +1,22 @@
-# 0.4.0 native-media creative workflow validation
+# 0.4.2 native-media creative workflow validation
 
-Verified **26 October 2026**, Windows. This document separates implementation,
-automated/local Comfy executor evidence, retained 0.3 history and the one approved
-live provider test. Interactive canvas verification remains Not Checked.
+Evidence reviewed for the 0.4.2 public release on **5 November 2026**. The checks
+below retain their actual execution dates: 26 October implementation/release
+checks, the 26 October 0.4.1 panel check and the 27 October live H3 test, all on
+Windows. Live generations were not repeated on 5 November. Release-wide offline
+checks below were rerun; public CI and publication results are verified separately.
 
-## Current 0.4 code under verification
+## 0.4.2 release checks — 5 November 2026
+
+- Python suite: 250 tests, 249 passes and one Unix-only permission skip on
+  Windows, using Comfy's Python 3.13 environment.
+- Frontend suite: 43 passes, including node panel width and resize handling.
+- No live generation or paid provider task was submitted for this release check.
+- Runtime ZIP uses the explicit package allowlist, CRC and SHA256 verification.
+  GitHub CI and Comfy Registry version status are external publication gates;
+  this file does not claim approval before those services report it.
+
+## Current 0.4 implementation
 
 - New creative generator contracts return VIDEO directly, IMAGE plus transparency
   MASK, or AUDIO; URL, task ID, estimated/actual cost, remaining balance and
@@ -52,7 +64,7 @@ live provider test. Interactive canvas verification remains Not Checked.
 - Model guard tests exercised documented conditional reference errors using
   synthetic values and no provider calls. Final combined counts follow below.
 
-## Final 0.4 release evidence
+## Retained 0.4.0 release evidence — 26 October 2026
 
 | Check | Status | Evidence |
 | --- | --- | --- |
@@ -69,15 +81,51 @@ live provider test. Interactive canvas verification remains Not Checked.
 | Native AUDIO to PreviewAudio | Pass, synthetic | Actual Comfy executor; saved/decoded FLAC, 16kHz, 8,000 samples; no provider access |
 | Recovery/concurrency | Pass, offline | Same Take, unknown submission, failed retrieval, separate credentials, cross-process lock, non-evicting mappings and explicit resume checks |
 | RGBA/MASK/AUDIO adapters | Pass, local | Actual alpha inversion and PCM decoding/size/sample checks |
-| Interactive browser/canvas | Not checked | Windows Computer Use stopped because it could not reliably determine the active browser URL; no further UI input was issued |
+| Interactive browser/canvas at 0.4.0 release | Not checked then | Computer Use stopped because it could not reliably determine the active browser URL; later scoped checks are recorded below |
 | Runtime ZIP/install integrity | Release gate | Explicit allowlist, CRC/SHA256, saved-key scan and installed-file/KIE/credential checks run before publication |
 | GitHub CI | Release gate | Windows/Ubuntu workflow results on the release commit are authoritative; prior-release success is not used |
-| Live native uploads, video/audio generation, every model | Not checked | No authorization to expand the one approved image task |
+| Live video/audio generation at 0.4.0 release | Not checked then | Later approved H3 upload/video test is recorded below; live audio and other models remain unverified |
 
 The real image test is provider execution evidence for that model/settings only.
-Synthetic video/audio prove native media integration and saving, not upstream
-video/audio model acceptance. Financial receipts are private; the public package
-contains no account balance, key, task ID, user-media reference or private journal.
+Synthetic video/audio prove native media integration and saving; the later H3
+check below provides separate upstream video acceptance evidence. Financial
+receipts are private; the public package contains no account balance, key, task
+ID, user-media reference or private journal.
+
+## 0.4.1 panel verification — 26 October 2026
+
+- Both model-help and credit-receipt panels follow the node width during draw and
+  resize. Text can scroll within the panel, while the Advanced button stays visible.
+- All 43 frontend tests passed for that patch. In a separate Comfy canvas using
+  frontend 1.55.18, the MiniMax H3 Image to Video node was inspected while resizing
+  and opening Advanced controls.
+- The original oversized-panel report was not reproduced in that separate
+  session before the change. The scoped visual check passed; it does not establish
+  confirmation in the original user workflow.
+
+## Live H3 video verification — 27 October 2026
+
+An explicitly approved single test ran through the **installed CRUN extension**
+in an isolated local Comfy workflow:
+
+```text
+Load Image → CRUN MiniMax H3 — Image to Video → Save Video
+```
+
+| Check | Status | Evidence |
+| --- | --- | --- |
+| Native reference upload | Pass, one path | Connected first-frame IMAGE uploaded through the CRUN node's Estimate/Generate flow |
+| Live H3 generation | Pass, one configuration | `minimax/h3-i2v`; five-second request, 480P, standard speed, no last frame |
+| Quote and charge | Pass, one task | Quote and provider-reported actual task charge were both 12.5 CRUN credits |
+| Receipt display | Pass | Node displayed quote, actual credits and a separately timestamped balance check; private account balance/receipts are excluded from this package |
+| Native VIDEO and Save Video | Pass | The connected Save Video node saved H.264 MP4; decoded locally as 480 × 480, 24 fps, 124 frames |
+| Visual inspection | Pass, scoped | The saved clip's sampled frames showed the requested rotation of the reference subject |
+
+This is a standard CRUN H3 test, not evidence for an independently identified
+H3 Max Turbo variant. It proves one image-upload → model → native VIDEO → Save
+Video path. It does not validate every video model/reference mode, live audio,
+refunds or cancellation behavior. No task identifier, signed URL, account balance
+or user-media reference is included in this public evidence.
 
 ## Retained history — 0.3 and 0.3.2 only
 
@@ -105,9 +153,10 @@ samples are not proof of present entitlement, all-catalog freshness or paid exec
 
 ## Known limitations
 
-- The one approved Nano Banana Pro image task completed. Live native-reference
-  uploads, video/audio generation, refund behavior and other model/account
-  availability remain Not Checked; one successful task does not validate a catalog.
+- The approved Nano Banana Pro image task and one MiniMax H3 first-frame upload/
+  video task completed. Other live reference modes, video models, audio generation,
+  refund behavior and model/account availability remain Not Checked; these two
+  paths do not validate a catalog.
 - Complex nested media, GIF-specific source adapters, 3D-native results, LLM
   execution and provider cancellation remain incomplete. Unknown Vidu output types
   stay Advanced instead of promising the wrong native output.
@@ -118,8 +167,9 @@ samples are not proof of present entitlement, all-catalog freshness or paid exec
   provider-enforced exactly-once guarantee. Preserve accepted task IDs.
 - A positive optional cap checks the estimate, not the final provider bill.
   Displayed receipts are historical; account balance is independently checked.
-- Other interactive operating systems, remote/multi-user servers and Comfy
-  Registry publication are not established by this release's local validation.
+- Other interactive operating systems and remote/multi-user servers remain
+  unverified. Registry submission/review and GitHub release status must be checked
+  independently; local validation does not establish public availability.
 
 Runtime packaging uses an explicit allowlist and CRC/SHA256 checks. Keys, private
 journals/indexes, user assets, signed URLs and Git history are excluded.

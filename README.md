@@ -5,7 +5,7 @@ lessons of [KIE Nodes Next](https://github.com/felipederosilva/ComfyUI-KIE-Nodes
 with separate credentials, code, node IDs and installation. This project is not
 affiliated with CRUN or Comfy Org.
 
-## 0.4.0 — native media workflows
+## 0.4.2 — native media workflows and verified H3 video
 
 A normal video node now returns **VIDEO directly**. Image nodes return **IMAGE
 and MASK**; speech/music nodes return **AUDIO**. Connect these outputs to Comfy's
@@ -33,12 +33,22 @@ simple fields are supported. For example, Kling Motion Control accepts a native
 motion VIDEO, and Seedance Reference to Video exposes ordered VIDEO/AUDIO ports.
 These adapters do not make every provider's similarly named model interchangeable.
 
-**A real image round trip has passed:** one approved Nano Banana Pro 1K test
-created, downloaded, decoded and saved native IMAGE/MASK media for a confirmed
-8-credit charge. Its completed asset reopened locally without a provider request.
-Actual Comfy executor checks also passed for Save Image, synthetic VIDEO to
-Save Video and synthetic AUDIO to Preview Audio. These checks do not prove live
-video/audio generation or every model. See [VALIDATION.md](VALIDATION.md).
+**Real image and video round trips have passed.** An approved Nano Banana Pro
+1K test created, downloaded, decoded and saved native IMAGE/MASK media for a
+confirmed 8-credit charge; its completed asset reopened locally without a provider
+request. On **27 October 2026**, the installed CRUN Studio MiniMax H3
+Image to Video node uploaded a first-frame image, generated a five-second 480P
+video at standard speed, and delivered native VIDEO to Save Video. The saved H.264
+file was 480 × 480 at 24 fps with 124 frames; CRUN reported a 12.5-credit task
+charge. The receipt displayed the quote, actual cost and timestamped balance check.
+These two paths do not validate every model, reference role or live audio
+operation. See [VALIDATION.md](VALIDATION.md).
+
+The 0.4.1 panel update keeps help and credit panels aligned to node width, reduces
+the empty receipt height and keeps the Advanced button visible. Resizing and
+Advanced controls passed in a separate Comfy canvas. The original reported
+overflow was not reproduced there, so confirmation in the original workflow
+remains separate from that test.
 
 ## Start with a Studio workflow
 
@@ -130,6 +140,12 @@ cap or balance rejection. The cap checks the estimate; it is not a provider-enfo
 limit on the final bill. There are no extra upload/paid checkboxes in the simple flow.
 
 ## Install or update
+
+Registry package ID: `crun-ai-nodes-next`, publisher `felipeosilva`.
+The [Comfy Registry listing](https://registry.comfy.org/nodes/crun-ai-nodes-next)
+and [GitHub releases](https://github.com/felipederosilva/ComfyUI-CRUN-Nodes-Next/releases)
+provide installation/download status. In Comfy's extension manager, search for
+**CRUN Nodes Next** or the package ID.
 
 Use the backend ComfyUI folder containing `main.py` and `custom_nodes`, not the
 Desktop program/resources directory. Obtain source here or a package from
@@ -226,8 +242,9 @@ python scripts/build_release.py
 
 [VALIDATION.md](VALIDATION.md) separates prior discovery, offline/synthetic checks,
 real local media, interactive Comfy acceptance and live provider execution.
-[ROADMAP.md](ROADMAP.md) lists the remaining model/media and release gates. Comfy
-Registry publication is not submitted by this code change.
+[ROADMAP.md](ROADMAP.md) lists the remaining model/media and release gates.
+GitHub release and Comfy Registry publication status are verified separately
+from local implementation and generation evidence.
 
 MIT license. KIE Next remains independent; neither package routes requests through
 the other. Remote models/templates remain subject to CRUN's terms and charges.
